@@ -18,3 +18,15 @@ class SupportPartialUpdate(object):
 		'''
 		raise NotImplementedError()
 
+class PairwiseComparison(object):
+	'''Enum like class for pairwise comparisons between players'''
+	WIN = 1
+	DRAW = 0
+	LOSE = -1
+
+def getPartialPlayPercentage(player):
+	if isinstance(player, SupportPartialPlay):
+		partialPlayPercentage = player.partialPlayPercentage
+		return partialPlayPercentage if partialPlayPercentage is > .0001 else .0001
+	else # assume 100% since the player doesnt support partial play
+		return 1.0
