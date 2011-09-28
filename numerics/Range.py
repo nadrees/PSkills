@@ -1,6 +1,10 @@
+import sys
+
 '''
 An immutable range of Integers, including endpoints. Ranges are not empty.
 '''
+_intMinValue = -sys.maxint - 1
+
 class Range(object):
 	def __init__(self, minimum = None, maximum = None):
 		if (maximum is None and minimum is None):
@@ -11,7 +15,7 @@ class Range(object):
 		self._maximum = maximum
 	
 	def isInRange(self, value):
-		return (self._minimum is None || self._minimum <= value) && (self._maximum is None || self._maximum >= value)
+		return (self._minimum is None or self._minimum <= value) and (self._maximum is None or self._maximum >= value)
 
 	@property
 	def minimum(self):
@@ -22,6 +26,10 @@ class Range(object):
 	def maximum(self):
 		"""The maximum value for this range"""
 		return self._maximum
+
+class PlayersRange(Range):
+	def __init__(self, minimum = _intMinValue, maximum = _intMinValue):
+		super(Range, self).__init__(minimum, maximum)
 
 def inclusive(minimum, maximum):
 	return Range(minimum, maximum)

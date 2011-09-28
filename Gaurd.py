@@ -1,8 +1,8 @@
-def ArgumentNotNone(arg, argName):
+def argumentNotNone(arg, argName):
 	assert arg is not None, argName
 
-def ArgumentIsValidIndex(index, count, argName):
+def argumentIsValidIndex(index, count, argName):
 	assert index >= 0 and index < count, argName
 
-def ArgumentInRangeInclusive(value, minimum, maximum, argName):
+def argumentInRangeInclusive(value, minimum, maximum, argName):
 	assert value >= minimum and value <= maximum, argName
