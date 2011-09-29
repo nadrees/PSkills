@@ -1,4 +1,3 @@
-import Gaurd
 import unittest
 
 def sortByRank(teams, ranks):
@@ -32,4 +31,5 @@ class RankSorterTests(unittest.TestCase):
 		self.assertEqual(people, ['one', 'two1', 'two2', 'four', 'five'])
 
 if __name__ == "__main__":
+	import Gaurd
 	unittest.main()

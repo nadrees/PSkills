@@ -1,5 +1,3 @@
-import Rating
-
 _defaultBeta = _defaultInitialMean/6.0
 _defaultDrawProbability = .10
 _defaultDynamicsFactor = _defaultInitialMean/300.0

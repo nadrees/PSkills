@@ -1,5 +1,3 @@
-import Gaurd
-
 class SupportedOptions(object):
 	'''Enum like class to represent the options supported by the skill calculator'''
 	NONE = 0x00
