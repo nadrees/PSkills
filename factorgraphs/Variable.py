@@ -38,3 +38,7 @@ class KeyedVariable(Variable):
 	@property
 	def key(self):
 		return self._key
+
+class VariableFactory(object):
+	def __init__(self, variablePriorInitializer):
+		self._variablePriorInitializer
