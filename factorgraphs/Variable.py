@@ -42,3 +42,11 @@ class KeyedVariable(Variable):
 class VariableFactory(object):
 	def __init__(self, variablePriorInitializer):
 		self._variablePriorInitializer
+		
+	def createBasicVariable(self, nameFormat, args):
+		name = nameFormat % args
+		return Variable(name, self._variablePriorInitializer)
+
+	def createKeyedVariable(self, key, nameFormat, args):
+		name = nameFormat % args
+		return KeyedVariable(key, name, self._variablePriorInitializer)
