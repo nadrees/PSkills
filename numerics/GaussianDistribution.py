@@ -2,7 +2,6 @@ from math import sqrt
 from math import pi
 from math import log
 from math import e
-from MathUtils import mean
 import unittest
 
 def fromRating(rating):
@@ -204,4 +203,5 @@ class GaussianDistributionTest(unittest.TestCase):
 		self.assertAlmostEqual(first=0.4330127018922193, second=absDiff2, delta=self.__errorTolerance)
 
 if __name__ == "__main__":
+	from MathUtils import mean
 	unittest.main()
