@@ -32,7 +32,7 @@ class PlayersRange(Range):
 		super(Range, self).__init__(minimum, maximum)
 
 class TeamsRange(Range):
-	def __init__(self, minimum = _intMinValue, maximum = _intMaxValue):
+	def __init__(self, minimum = _intMinValue, maximum = _intMinValue):
 		super(Range, self).__init__(minimum, maximum)
 
 def inclusive(minimum, maximum):

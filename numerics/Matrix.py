@@ -1,6 +1,5 @@
 from math import sqrt
 from math import floor
-import unittest
 
 class Matrix(object):
 	__errorTolerance = 0.0000000001
@@ -197,92 +196,3 @@ class _SquareMatrix(Matrix):
 				values[currentRow][currentCol] = allValues[allValuesIndex]
 				allValuesIndex += 1
 		self._values = values
-
-class MatrixTests(unittest.TestCase):
-	def test_twoByTwoDeterminantTests(self):
-		a = _SquareMatrix([1, 2, 3, 4])
-		self.assertEqual(-2, a.determinant)
-		b = _SquareMatrix([3, 4, 5, 6])
-		self.assertEqual(-2, b.determinant)
-		c = _SquareMatrix([1, 1, 1, 1])
-		self.assertEqual(0, c.determinant)
-		d = _SquareMatrix([12, 15, 17, 21])
-		self.assertEqual(12 * 21 - 15 * 17, d.determinant)
-
-	def test_ThreeByThreeDeterminantTests(self):
-		a = _SquareMatrix([1, 2, 3, 4, 5, 6, 7, 8, 9])
-		self.assertEqual(0, a.determinant)
-		b = _SquareMatrix([3, 1, 4, 1, 5, 9, 2, 6, 5])
-		self.assertEqual(-90, b.determinant)
-
-	def test_FourByFourDeterminantTests(self):
-		a = _SquareMatrix([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
-		self.assertEqual(0, a.determinant)
-		b = _SquareMatrix([3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3])
-		self.assertEqual(98, b.determinant)
-
-	def test_EightByEightDeterminantTests(self):
-		a = _SquareMatrix([1, 2,  3,  4,  5,  6,  7,  8,
-                                   9, 10, 11, 12, 13, 14, 15, 16,
-                                   17, 18, 19, 20, 21, 22, 23, 24, 
-                                   25, 26, 27, 28, 29, 30, 31, 32,
-                                   33, 34, 35, 36, 37, 38, 39, 40,
-                                   41, 42, 32, 44, 45, 46, 47, 48,
-                                   49, 50, 51, 52, 53, 54, 55, 56,
-                                   57, 58, 59, 60, 61, 62, 63, 64])
-		self.assertEqual(0, a.determinant)
-		b = _SquareMatrix([3, 1, 4, 1, 5, 9, 2, 6, 
-                                   5, 3, 5, 8, 9, 7, 9, 3,
-                                   2, 3, 8, 4, 6, 2, 6, 4, 
-                                   3, 3, 8, 3, 2, 7, 9, 5,
-                                   0, 2, 8, 8, 4, 1, 9, 7,
-                                   1, 6, 9, 3, 9, 9, 3, 7,
-                                   5, 1, 0, 5, 8, 2, 0, 9, 
-                                   7, 4, 9, 4, 4, 5, 9, 2])
-		self.assertEqual(1378143, b.determinant)
-
-	def test_EqualTests(self):
-		a = _SquareMatrix([1, 2, 3, 4])
-		b = _SquareMatrix([1, 2, 3, 4])
-		self.assertTrue(a == b)
-		self.assertEqual(a, b)
-		c = Matrix([[1, 2, 3], [4, 5, 6]])
-		d = Matrix([[1, 2, 3], [4, 5, 6]])
-		self.assertTrue(c == d)
-		self.assertEqual(c, d)
-		e = Matrix([[1, 4], [2, 5], [3, 6]])
-		f = e.transpose
-		self.assertTrue(d == f)
-		self.assertEqual(d, f)
-		# rounding test
-		g = _SquareMatrix([1, 2.0000000000000001, 3, 4])
-		h = _SquareMatrix([1, 2, 3, 4])
-		self.assertTrue(g == h)
-		self.assertEqual(g, h)
-
-	def test_adjugateTests(self):
-		a = _SquareMatrix([1, 2, 3, 4])
-		b = _SquareMatrix([4, -2, -3, 1])
-		self.assertEqual(b, a.adjugate)
-		c = _SquareMatrix([-3, 2, -5, -1, 0, -2, 3, -4, 1])
-		d = _SquareMatrix([-8, 18, -4, -5, 12, -1, 4, -6, 2])
-		self.assertEqual(d, c.adjugate)
-
-	def test_inverseTests(self):
-		a = _SquareMatrix([4, 3, 3, 2])
-		b = _SquareMatrix([-2, 3, 3, -4])
-		aInverse = a.inverse
-		self.assertEqual(b, aInverse)
-		identity2x2 = _IdentityMatrix(2)
-		aaInverse = a*aInverse
-		self.assertTrue(identity2x2 == aaInverse)
-		c = _SquareMatrix([1, 2, 3, 0, 4, 5, 1, 0, 6])
-		cInverse = c.inverse
-		d = _SquareMatrix([24, -12, -2, 5, 3, -5, -4, 2, 4])*(1.0/22)
-		self.assertTrue(d == cInverse)
-		identity3x3 = _IdentityMatrix(3)
-		ccInverse = c*cInverse
-		self.assertTrue(identity3x3 == ccInverse)
-
-if __name__ == "__main__":
-	unittest.main()	
