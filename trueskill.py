@@ -1,4 +1,4 @@
-from objects import SkillCalculator, SupportedOptions, argumentNotNull, sortByRank, PairwiseComparison, Rating
+from objects import SkillCalculator, SupportedOptions, argumentNotNone, sortByRank, PairwiseComparison, Rating
 from numerics import exactly, inverseCumulativeTo, cumulativeTo, at
 from math import sqrt, e
 
@@ -51,14 +51,7 @@ def wWithinMargin(teamPerformanceDifference, drawMargin, c = None):
 	if denominator < 2.222758749e-162:
 		return 1.0
 	vt = vWithinMargin(teamPerformanceDifferenceAbsoluteValue, drawMargin)
-	return vt**2.0 + 
-		((drawMargin - teamPerformanceDifferenceAbsoluteValue)
-		*
-		at(drawMargin - teamPerformanceDifferenceAbsoluteValue)
-		-
-		(-1 * drawMargin - teamPerformanceDifferenceAbsoluteValue)
-		*
-		at(-1 * drawMargin - teamPerformanceDifferenceAbsoluteValue))/denominator
+	return vt**2.0 + ((drawMargin - teamPerformanceDifferenceAbsoluteValue)	* at(drawMargin - teamPerformanceDifferenceAbsoluteValue) - (-1 * drawMargin - teamPerformanceDifferenceAbsoluteValue) * at(-1 * drawMargin - teamPerformanceDifferenceAbsoluteValue))/denominator
 
 class TwoPlayerTrueSkillCalculator(SkillCalculator):
 	'''
@@ -68,31 +61,32 @@ class TwoPlayerTrueSkillCalculator(SkillCalculator):
 	a TrueSkill implementation should have
 	'''
 	def __init__(self):
-		super(SkillCalculator, self).__init__(SupportedOptions.NONE, exactly(2), exactly(1))
+		super(TwoPlayerTrueSkillCalculator, self).__init__(SupportedOptions.NONE, exactly(2), exactly(1))
 		
 	def calculateNewRatings(self, gameInfo, teams, teamRanks):
-		argumentNotNull(gameInfo, "gameInfo")
+		'''Implementation for a 2 player game. returns a list of tuples of (player, newRating)'''
+		argumentNotNone(gameInfo, "gameInfo")
 		self._validateTeamCountAndPlayersCountPerTeam(teams)
 		teams, teamRanks = sortByRank(teams, teamRanks)
 
-		winningTeamPlayers = teams[0].asListOfTuples()
+		winningTeamPlayers = teams[0].asListOfTuples
 		#since we know each team has one player, we know the player is the first one
 		winningPlayer = winningTeamPlayers[0][0]
 		winningPlayerOldRating = winningTeamPlayers[0][1]
 		
-		losingTeamPlayers = teams[1].asListOfTuples()
+		losingTeamPlayers = teams[1].asListOfTuples
 		losingPlayer = losingTeamPlayers[0][0]
 		losingPlayerOldRating = losingTeamPlayers[0][1]
 		
 		wasDraw = (teamRanks[0] == teamRanks[1])
 		results = list()
 		results.append(
-			(teams[0], 
+			(winningPlayer, 
 			self._calculateNewRating(
 				gameInfo, winningPlayerOldRating, losingPlayerOldRating, PairwiseComparison.DRAW if wasDraw else PairwiseComparison.WIN)
 		))
 		results.append(
-			(teams[1],
+			(losingPlayer,
 			self._calculateNewRating(
 				gameInfo, losingPlayerOldRating, winningPlayerOldRating, PairwiseComparison.DRAW if wasDraw else PairwiseComparison.LOSE)
 		))
@@ -100,9 +94,12 @@ class TwoPlayerTrueSkillCalculator(SkillCalculator):
 		
 	def _calculateNewRating(self, gameInfo, selfRating, opponentRating, comparison):
 		drawMargin = getDrawMarginFromDrawProbability(gameInfo.drawProbability, gameInfo.beta)
-		c = sqrt((selfRating.standardDeviation**2) + (opponentRating.standardDeviation**2) + 2*(gameInfo.beta**2)
-		winningMean = selfRating.mean if comparison != PairwiseComparison.LOSE else opponentRating.mean
-		losingMean = opponentRating.mean if comparison != PairwiseComparison.LOSE else selfRating.mean
+		c = sqrt((selfRating.standardDeviation**2) + (opponentRating.standardDeviation**2) + 2*(gameInfo.beta**2))
+		winningMean = selfRating.mean
+		losingMean = opponentRating.mean
+		if comparison == PairwiseComparison.LOSE:
+			winningMean = opponentRating.mean
+			losingMean = selfRating.mean
 		meanDelta = winningMean - losingMean
 		v = None
 		w = None
@@ -123,7 +120,7 @@ class TwoPlayerTrueSkillCalculator(SkillCalculator):
 		return Rating(newMean, newStdDev)
 		
 	def calculateMatchQuality(self, gameInfo, teams):
-		argumentNotNull(gameInfo, "gameInfo")
+		argumentNotNone(gameInfo, "gameInfo")
 		self._validateTeamCountAndPlayersCountPerTeam(teams)
 		player1Rating = teams[0].asListOfTuples()[0][1]
 		player2Rating = teams[1].asListOfTuples()[0][1]

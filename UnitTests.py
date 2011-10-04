@@ -1,20 +1,54 @@
 from numerics import GaussianDistribution, logRatioNormalization, absoluteDifference, at, cumulativeTo, logProductNormalization, Matrix, _SquareMatrix, _IdentityMatrix
-from objects import sortByRank
+from objects import sortByRank, Player, defaultGameInfo, Team
+from trueskill import TwoPlayerTrueSkillCalculator
 from math import sqrt
 import unittest
+
+_errorTolerance = 0.085
+
+class AbstractTestCase(unittest.TestCase):
+	def assertRating(self, expectedMean, expectedStandardDeviation, actual):
+		self.assertAlmostEqual(expectedMean, actual.mean, _errorTolerance)
+		self.assertAlmostEqual(expectedStandardDeviation, actual.standardDeviation, _errorTolerance)
+		
+	def assertMatchQuality(self, expectedMatchQuality, actualMatchQuality):
+		self.assertAlmostEqual(expectedMatchQuality, actualMatchQuality, 0.0005)
+
+class TwoPlayerTrueSkillCalculatorTests(AbstractTestCase):
+	def setUp(self):
+		self.calculator = TwoPlayerTrueSkillCalculator()
+	
+	def test_twoPlayerTestNotDrawn(self):
+		player1 = Player(1)
+		player2 = Player(2)
+		gameInfo = defaultGameInfo()
+		
+		team1 = Team(player1, gameInfo.defaultRating)
+		team2 = Team(player2, gameInfo.defaultRating)
+		teams = [team1, team2]
+		
+		newRatings = self.calculator.calculateNewRatings(gameInfo, teams, [1, 2])
+		
+		for newRating in newRatings:
+			player = newRating[0]
+			if player == player1:
+				self.assertRating(29.39583201999924, 7.171475587326186, newRating[1])
+			else:
+				self.assertRating(20.60416798000076, 7.171475587326186, newRating[1])
+		self.assertMatchQuality(0.447, calculator.calculateMatchQuality(gameInfo, teams))
 
 class SortByRankTests(unittest.TestCase):
 	def test_sortAlreadySortedTest(self):
 		people = ['one', 'two', 'three']
 		ranks = [1, 2, 3]
 		people = sortByRank(people, ranks)
-		self.assertEqual(people, ['one', 'two', 'three'])
+		self.assertEqual(people, (['one', 'two', 'three'], [1, 2, 3]))
 
 	def test_sortUnsortedTest(self):
 		people = ['five', 'two1', 'two2', 'one', 'four']
 		ranks = [5, 2, 2, 1, 4]
 		people = sortByRank(people, ranks)
-		self.assertEqual(people, ['one', 'two1', 'two2', 'four', 'five'])
+		self.assertEqual(people, (['one', 'two1', 'two2', 'four', 'five'], [1, 2, 2, 4, 5]))
 
 class MatrixTests(unittest.TestCase):
 	def test_twoByTwoDeterminantTests(self):

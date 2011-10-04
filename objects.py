@@ -5,9 +5,9 @@ _defaultInitialMean = 25.0
 _defaultBeta = _defaultInitialMean/6.0
 _defaultDrawProbability = .10
 _defaultDynamicsFactor = _defaultInitialMean/300.0
-_defainInitialStandardDeviation = _defaultInitialMean/3.0
+_defaultInitialStandardDeviation = _defaultInitialMean/3.0
 
-__defaultConservativeStandardDeviationMultiplier = 3.0
+_defaultConservativeStandardDeviationMultiplier = 3.0
 
 def defaultGameInfo():
 	return GameInfo(_defaultInitialMean, _defaultInitialStandardDeviation, _defaultBeta, _defaultDynamicsFactor, _defaultDrawProbability)
@@ -67,10 +67,11 @@ def calcMeanMean(ratings):
 	return ret/len(ratings)
 
 def _validateTeamCountAndPlayersCountPerTeam(teams, totalTeams, playersPerTeam):
-	Gaurd.argumentNotNone(teams, "teams")
+	argumentNotNone(teams, "teams")
 	countOfTeams = 0
 	for currentTeam in teams:
-		assert playersPerTeam.isInRange(len(currentTeam)), currentTeam
+		numPlayers = len(currentTeam.asListOfTuples)
+		assert playersPerTeam.isInRange(numPlayers), currentTeam
 		countOfTeams += 1
 	assert totalTeams.isInRange(countOfTeams), countOfTeams
 
@@ -249,8 +250,8 @@ class Rating(object):
 		'''
 		self._mean = mean
 		self._standardDeviation = standardDeviation
-		self._conservativeStandardDeviationMultiplier = conservativeStandardDeviationMultiplier if conservativeStandardDeviationMultiplier is not None else __defaultConservativeStandardDeviationMultiplier
-		self._conservativeRating = self._mean - self._conservativeStandardDeviationMultipler*self._standardDeviation
+		self._conservativeStandardDeviationMultiplier = conservativeStandardDeviationMultiplier if conservativeStandardDeviationMultiplier is not None else _defaultConservativeStandardDeviationMultiplier
+		self._conservativeRating = self._mean - self._conservativeStandardDeviationMultiplier*self._standardDeviation
 
 class SupportedOptions(object):
 	'''Enum like class to represent the options supported by the skill calculator'''
