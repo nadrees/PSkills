@@ -33,8 +33,8 @@ def isEqual(arg1, arg2, argName):
 
 def sortByRank(teams, ranks):
 	'''
-	Sorts the teams in increasing order of their ranks. len(teams) must equal len(ranks), and both teams and ranks are lists. Returns
-	the sorted teams list.
+	Sorts the teams in increasing order of their ranks. len(teams) must equal len(ranks), and both teams and ranks are lists.
+	Returns a tuple of two sorted lists: the teams first, and then the ranks
 	'''
 	argumentNotNone(teams, "teams")
 	argumentNotNone(ranks, "ranks")
@@ -44,9 +44,11 @@ def sortByRank(teams, ranks):
 		team_tuples.append((teams[i], ranks[i]))
 	team_tuples.sort(key=lambda currentTuple: currentTuple[1])
 	teams = list()
+	ranks = list()
 	for i in range(len(team_tuples)):
 		teams.append(team_tuples[i][0])
-	return teams
+		ranks.append(team_tuples[i][1])
+	return (teams, ranks)
 
 def partialUpdate(prior, fullPosterior, updatePercentage):
 	priorGaussian = GaussianDistribution.fromRating(prior)
@@ -271,6 +273,7 @@ class SkillCalculator(object):
 		gameInfo should be an instance of the GameInfo class
 		teams should be a list of mappings of players to their teams
 		teamRanks should be a list of the ranks of the teams, where 1 is first place. A tie is represented as a repeated number
+		returns a list of tuples of (team, new rating)
 		'''
 		raise NotImplementedError()
 
