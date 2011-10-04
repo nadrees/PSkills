@@ -176,7 +176,7 @@ class Player(SupportPartialPlay, SupportPartialUpdate):
 		self._partialUpdatePercentage = partialUpdatePercentage
 
 	def __eq__(self, other):
-		return self._id == other.id and self._partialPlayPercentage == other.partialPlayPercentage and self._partialUpdatePercentage == other.partialUpdatePercentage
+		return isinstance(other, Player) and self._id == other.id
 
 	def __ne__(self, other):
 		return (self == other) == False

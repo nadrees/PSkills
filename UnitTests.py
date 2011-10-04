@@ -1,5 +1,5 @@
 from numerics import GaussianDistribution, logRatioNormalization, absoluteDifference, at, cumulativeTo, logProductNormalization, Matrix, _SquareMatrix, _IdentityMatrix
-from objects import sortByRank, Player, defaultGameInfo, Team
+from objects import sortByRank, Player, GameInfo, defaultGameInfo, Team, Rating
 from trueskill import TwoPlayerTrueSkillCalculator
 from math import sqrt
 import unittest
@@ -51,6 +51,44 @@ class TwoPlayerTrueSkillCalculatorTests(AbstractTestCase):
 		for newRating in newRatings:
 			self.assertRating(25.0, 6.4575196623173081, newRating[1])
 		self.assertMatchQuality(0.447, self.calculator.calculateMatchQuality(gameInfo, teams))
+		
+	def test_oneOnOneMassiveUpsetDrawTest(self):
+		player1 = Player(1)
+		player2 = Player(2)
+		gameInfo = defaultGameInfo()
+		
+		team1 = Team()
+		team1.addPlayer(player1, gameInfo.defaultRating)
+		team2 = Team()
+		team2.addPlayer(player2, Rating(50, 12.5))
+		teams = [team1, team2]
+		
+		newRatingsWinLose = self.calculator.calculateNewRatings(gameInfo, teams, [1, 1])
+		
+		for newRating in newRatingsWinLose:
+			player = newRating[0]
+			if player == player1:
+				self.assertRating(31.662, 7.137, newRating[1])
+			else:
+				self.assertRating(35.010, 7.910, newRating[1])
+		self.assertMatchQuality(.110, self.calculator.calculateMatchQuality(gameInfo, teams))
+		
+	def test_twoPlayerChessTestNotDrawn(self):
+		player1 = Player(1)
+		player2 = Player(2)
+		gameInfo = GameInfo(1200.0, 1200.0 / 3.0, 200.0, 1200.0 / 300.0, 0.03)
+		
+		team1 = Team(player1, Rating(1301.0007, 42.9232))
+		team2 = Team(player2, Rating(1188.7560, 42.5570))
+		
+		newRatings = self.calculator.calculateNewRatings(gameInfo, [team1, team2], [1, 2])
+		
+		for newRating in newRatings:
+			player = newRating[0]
+			if player == player1:
+				self.assertRating(1304.7820836053318, 42.843513887848658, newRating[1])
+			else:
+				self.assertRating(1185.0383099003536, 42.485604606897752, newRating[1])
 
 class SortByRankTests(unittest.TestCase):
 	def test_sortAlreadySortedTest(self):

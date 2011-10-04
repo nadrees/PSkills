@@ -3,7 +3,7 @@ from numerics import exactly, inverseCumulativeTo, cumulativeTo, at
 from math import sqrt, e
 
 def getDrawMarginFromDrawProbability(drawProbability, beta):
-	return inverseCumulativeTo(0.5*(drawProbability + 1), 0, 1)*sqrt(1 + 1)*beta
+	return inverseCumulativeTo(0.5*(drawProbability + 1), 0, 1)*sqrt(1 + 1.0)*beta
 	
 def vExceedsMargin(teamPerformanceDifference, drawMargin, c = None):
 	if c is not None:
@@ -11,7 +11,7 @@ def vExceedsMargin(teamPerformanceDifference, drawMargin, c = None):
 		drawMargin = drawMargin / c
 	denominator = cumulativeTo(teamPerformanceDifference - drawMargin)
 	if denominator < 2.222758749e-162:
-		return -1 * teamPerformanceDifference + drawMargin
+		return -1.0 * teamPerformanceDifference + drawMargin
 	else:
 		return at(teamPerformanceDifference - drawMargin) / denominator
 		
@@ -29,17 +29,17 @@ def wExceedsMargin(teamPerformanceDifference, drawMargin, c = None):
 	
 def vWithinMargin(teamPerformanceDifference, drawMargin, c = None):
 	if c is not None:
-		teamPerfomanceDifference = teamPerformanceDifference / c
+		teamPerformanceDifference = teamPerformanceDifference / c
 		drawMargin = drawMargin / c
 	teamPerformanceDifferenceAbsoluteValue = abs(teamPerformanceDifference)
 	denominator = cumulativeTo(drawMargin - teamPerformanceDifferenceAbsoluteValue) - cumulativeTo(-1 * drawMargin - teamPerformanceDifferenceAbsoluteValue)
 	if denominator < 2.222758749e-162:
 		if teamPerformanceDifference < 0.0:
-			return -1*teamPerformanceDifference - drawMargin
-		return -1*teamPerformanceDifference + drawMargin
-	numerator = at(-1*drawMargin - teamPerformanceDifferenceAbsoluteValue) - at(drawMargin - teamPerformanceDifferenceAbsoluteValue)
+			return -1.0*teamPerformanceDifference - drawMargin
+		return -1.0*teamPerformanceDifference + drawMargin
+	numerator = at(-1.0*drawMargin - teamPerformanceDifferenceAbsoluteValue) - at(drawMargin - teamPerformanceDifferenceAbsoluteValue)
 	if teamPerformanceDifference < 0.0:
-		return -1*numerator/denomintor
+		return -1.0*numerator/denominator
 	return numerator / denominator
 	
 def wWithinMargin(teamPerformanceDifference, drawMargin, c = None):
@@ -94,7 +94,7 @@ class TwoPlayerTrueSkillCalculator(SkillCalculator):
 		
 	def _calculateNewRating(self, gameInfo, selfRating, opponentRating, comparison):
 		drawMargin = getDrawMarginFromDrawProbability(gameInfo.drawProbability, gameInfo.beta)
-		c = sqrt((selfRating.standardDeviation**2) + (opponentRating.standardDeviation**2) + 2*(gameInfo.beta**2))
+		c = sqrt((selfRating.standardDeviation**2.0) + (opponentRating.standardDeviation**2.0) + 2.0*(gameInfo.beta**2.0))
 		winningMean = selfRating.mean
 		losingMean = opponentRating.mean
 		if comparison == PairwiseComparison.LOSE:
@@ -107,14 +107,14 @@ class TwoPlayerTrueSkillCalculator(SkillCalculator):
 		if comparison != PairwiseComparison.DRAW:
 			v = vExceedsMargin(meanDelta, drawMargin, c)
 			w = wExceedsMargin(meanDelta, drawMargin, c)
-			rankMultiplier = int(comparison)
+			rankMultiplier = comparison
 		else:
 			v = vWithinMargin(meanDelta, drawMargin, c)
 			w = wWithinMargin(meanDelta, drawMargin, c)
-			rankMultiplier = 1
-		meanMultiplier = ((selfRating.standardDeviation**2) + (gameInfo.dynamicsFactor**2)) / c
+			rankMultiplier = 1.0
+		meanMultiplier = ((selfRating.standardDeviation**2.0) + (gameInfo.dynamicsFactor**2.0)) / c
 		varianceWithDynamics = (selfRating.standardDeviation**2) + (gameInfo.dynamicsFactor**2)
-		stdDevMultiplier = varianceWithDynamics/(c**2)
+		stdDevMultiplier = varianceWithDynamics/(c**2.0)
 		newMean = selfRating.mean + (rankMultiplier*meanMultiplier*v)
 		newStdDev = sqrt(varianceWithDynamics*(1 - w*stdDevMultiplier))
 		return Rating(newMean, newStdDev)
@@ -124,9 +124,9 @@ class TwoPlayerTrueSkillCalculator(SkillCalculator):
 		self._validateTeamCountAndPlayersCountPerTeam(teams)
 		player1Rating = teams[0].asListOfTuples[0][1]
 		player2Rating = teams[1].asListOfTuples[0][1]
-		betaSquared = (gameInfo.beta**2)
-		player1SigmaSquared = (player1Rating.standardDeviation**2)
-		player2SigmaSquared = (player2Rating.standardDeviation**2)
-		sqrtPart = sqrt((2*betaSquared) / (2*betaSquared + player1SigmaSquared + player2SigmaSquared))
-		expPart = e**((-1*((player1Rating.mean - player2Rating.mean)**2)) / (2*(2*betaSquared + player1SigmaSquared + player2SigmaSquared)))
+		betaSquared = (gameInfo.beta**2.0)
+		player1SigmaSquared = (player1Rating.standardDeviation**2.0)
+		player2SigmaSquared = (player2Rating.standardDeviation**2.0)
+		sqrtPart = sqrt((2.0*betaSquared) / (2.0*betaSquared + player1SigmaSquared + player2SigmaSquared))
+		expPart = e**((-1.0*((player1Rating.mean - player2Rating.mean)**2.0)) / (2.0*(2.0*betaSquared + player1SigmaSquared + player2SigmaSquared)))
 		return sqrtPart*expPart
