@@ -1,5 +1,5 @@
 from objects import SkillCalculator, SupportedOptions, argumentNotNone, sortByRank, PairwiseComparison, Rating
-from numerics import exactly, inverseCumulativeTo, cumulativeTo, at
+from numerics import atLeast, exactly, inverseCumulativeTo, cumulativeTo, at
 from math import sqrt, e
 
 def getDrawMarginFromDrawProbability(drawProbability, beta):
@@ -53,12 +53,98 @@ def wWithinMargin(teamPerformanceDifference, drawMargin, c = None):
 	vt = vWithinMargin(teamPerformanceDifferenceAbsoluteValue, drawMargin)
 	return vt**2.0 + ((drawMargin - teamPerformanceDifferenceAbsoluteValue)	* at(drawMargin - teamPerformanceDifferenceAbsoluteValue) - (-1 * drawMargin - teamPerformanceDifferenceAbsoluteValue) * at(-1 * drawMargin - teamPerformanceDifferenceAbsoluteValue))/denominator
 
+class TwoTeamTrueSkillCalculator(SkillCalculator):
+	'''
+	Calculates the new ratings for only two teams where each team has at least 1 player
+
+	When you only have two teams, the math is still simple: no factor graphs are used yet
+	'''
+	def __init__(self):
+		super(TwoTeamTrueSkillCalculator, self).__init__(SupportedOptions.NONE, exactly(2), atLeast(1))
+		
+	def calculateNewRatings(self, gameInfo, teams, teamRanks):
+		'''Implementation for a 2 team game. Returns a list of tuples of (player, rating)'''
+		argumentNotNone(gameInfo, "gameInfo")
+		self._validateTeamCountAndPlayersCountPerTeam(teams)
+		teams, teamRanks = sortByRanks(teams, teamRanks)
+		
+		team1 = teams[0]
+		team2 = teams[1]
+		
+		wasDraw = (teamRanks[0] == teamRanks[1])
+		
+		results = list()
+		self._updatePlayerRatings(gameInfo, results, team1, team2, PairwiseComparison.DRAW if wasDraw else PairwiseComparison.WIN)
+		self._updatePlayerRatings(gameInfo, results, team2, team1, PairwiseComparison.DRAW if wasDraw else PairwiseComparison.LOSE)
+		return results
+		
+	def _updatePlayerRatings(self, gameInfo, newPlayerRatings, selfTeam, otherTeam, selfToOtherComparison):
+		drawMargin = getDrawMarginFromDrawProbability(gameInfo.drawProbability, gameInfo.beta)
+		betaSquared = gameInfo.beta**2.0
+		tauSquared = gameInfo.dynamicsFactor**2.0
+
+		totalPlayers = selfTeam.size + otherTeam.size
+		
+		selfTeamMeanSum = selfTeam.meanSum
+		otherTeamMeanSum = otherTeam.meanSum
+		selfTeamStandardDeviationSum = selfTeam.standardDeviationSum
+		otherTeamStandardDeviationSum = otherTeam.standardDeviationSum
+		
+		c = sqrt(selfTeamStandardDeviationSum + otherTeamStandardDeviationSum + totalPlayers*betaSquared)
+		winningMean = selfTeamMeanSum
+		losingMean = otherTeamMeanSum
+		if selfToOtherComparison == PairwiseComparison.LOSE:
+			winningMean = otherTeamMeanSum
+			losingMean = selfTeamMeanSum
+		meanDelta = winningMean - losingMean
+		
+		v = None
+		w = None
+		rankMultiplier = None
+		if selfToOtherComparison != PairwiseComparison.DRAW:
+			v = vExceedsMargin(meanDelta, drawMargin, c)
+			w = wExceedsMargin(meanDelta, drawMargin, c)
+			rankMultiplier = selfToOtherComparison
+		else:
+			v = vWithinMargin(meanDelta, drawMargin, c)
+			w = wWithinMargin(meanDelta, drawMargin, c)
+			rankMultiplier = 1
+		
+		for playerTuple in selfTeam.asListOfTuples:
+			previousPlayerRating = playerTuple[1]
+			meanMultiplier = ((previousPlayerRating.standardDeviation**2.0) + tauSquared) / c
+			stdDevMultiplier = ((previousPlayerRating.standardDeviation**2.0) tauSquared) / (c**2.0)
+			playerMeanDelta = rankMultiplier*meanMultiplier*v
+			newMean = previousPlayerRating.mean + playerMeandDelta
+			newStdDev = sqrt(((previousPlayerRating.standardDeviation**2.0) + tauSquared) * (1 - w*stdDevMultiplier))
+			newPlayerRatings.append((playerTuple[0], Rating(newMean, newStdDev)))
+			
+	def calculateMatchQuality(self, gameInfo, teams):
+		argumentNotNone(gameInfo, "gameInfo")
+		self._validateTeamCountAndPlayersCountPerTeam(teams)
+		
+		team1 = teams[0]
+		team2 = teams[1]
+		
+		totalPlayers = team1.size + team2.size
+		betaSquared = gameInfo.beta**2.0
+		
+		team1MeanSum = team1.meanSum
+		team1StdDevSum = reduce(sum, map(lambda playerTuple: return playerTuple[1].standardDeviation**2.0, team1.asListOfTuples))
+		
+		team2MeanSum = team2.meanSum
+		team2StdDevSum = reduce(sum, map(lambda playerTuple: return playerTuple[1].standardDeviation**2.0, team2.asListOfTuples))
+		
+		sqrtPart = sqrt((totalPlayers*betaSquared) / (totalPlayers*betaSquared + team1StdDevSum + team2StdDevSum))
+		expPart = e**((-1.0*(team1MeanSum - team2MeanSum)**2.0) / (2*(totalPlayers*betaSquared +team1StdDevSum + team2StdDevSum)))
+		return sqrtPart * expPart
+
 class TwoPlayerTrueSkillCalculator(SkillCalculator):
 	'''
 	Calculates the new ratings for only two players
 	
-	When you only have two players, a lot of the math simlifies. The main purpose of this class is to show the bare minimum of what 
-	a TrueSkill implementation should have
+	When you only have two players, a lot of the math simlifies. The main purpose of this class is to show 
+	the bare minimum of what a TrueSkill implementation should have
 	'''
 	def __init__(self):
 		super(TwoPlayerTrueSkillCalculator, self).__init__(SupportedOptions.NONE, exactly(2), exactly(1))

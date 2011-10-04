@@ -199,6 +199,18 @@ class Team(object):
 	@property
 	def asListOfTuples(self):
 		return self._playerRatings
+		
+	@property
+	def size(self):
+		return len(self._playerRatings)
+		
+	@property
+	def meanSum(self):
+		return reduce(sum, map(lambda playerTuple: return playerTuple[1].mean, self._playerRatings))
+		
+	@property
+	def standardDeviationSum(self):
+		return reduce(sum, map(lambda playerTuple: return playerTuple[1].standardDeviation, self._playerRatings))
 
 class Rating(object):
 	'''Container for a player's rating'''
