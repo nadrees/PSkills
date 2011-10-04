@@ -8,11 +8,11 @@ _errorTolerance = 0.085
 
 class AbstractTestCase(unittest.TestCase):
 	def assertRating(self, expectedMean, expectedStandardDeviation, actual):
-		self.assertAlmostEqual(expectedMean, actual.mean, _errorTolerance)
-		self.assertAlmostEqual(expectedStandardDeviation, actual.standardDeviation, _errorTolerance)
+		self.assertAlmostEqual(expectedMean, actual.mean, delta = _errorTolerance)
+		self.assertAlmostEqual(expectedStandardDeviation, actual.standardDeviation, delta = _errorTolerance)
 		
 	def assertMatchQuality(self, expectedMatchQuality, actualMatchQuality):
-		self.assertAlmostEqual(expectedMatchQuality, actualMatchQuality, 0.0005)
+		self.assertAlmostEqual(expectedMatchQuality, actualMatchQuality, delta = 0.0005)
 
 class TwoPlayerTrueSkillCalculatorTests(AbstractTestCase):
 	def setUp(self):
@@ -35,7 +35,22 @@ class TwoPlayerTrueSkillCalculatorTests(AbstractTestCase):
 				self.assertRating(29.39583201999924, 7.171475587326186, newRating[1])
 			else:
 				self.assertRating(20.60416798000076, 7.171475587326186, newRating[1])
-		self.assertMatchQuality(0.447, calculator.calculateMatchQuality(gameInfo, teams))
+		self.assertMatchQuality(0.447, self.calculator.calculateMatchQuality(gameInfo, teams))
+		
+	def test_twoPlayerTestDrawn(self):
+		player1 = Player(1)
+		player2 = Player(2)
+		gameInfo = defaultGameInfo()
+		
+		team1 = Team(player1, gameInfo.defaultRating)
+		team2 = Team(player2, gameInfo.defaultRating)
+		teams = [team1, team2]
+		
+		newRatings = self.calculator.calculateNewRatings(gameInfo, teams, [1, 1])
+		
+		for newRating in newRatings:
+			self.assertRating(25.0, 6.4575196623173081, newRating[1])
+		self.assertMatchQuality(0.447, self.calculator.calculateMatchQuality(gameInfo, teams))
 
 class SortByRankTests(unittest.TestCase):
 	def test_sortAlreadySortedTest(self):

@@ -5,17 +5,17 @@ from math import sqrt, e
 def getDrawMarginFromDrawProbability(drawProbability, beta):
 	return inverseCumulativeTo(0.5*(drawProbability + 1), 0, 1)*sqrt(1 + 1)*beta
 	
-def vExceedsMargin(teamPerfomanceDifference, drawMargin, c = None):
+def vExceedsMargin(teamPerformanceDifference, drawMargin, c = None):
 	if c is not None:
-		teamPerformanceDifference = teamPerfofmanceDifference / c
+		teamPerformanceDifference = teamPerformanceDifference / c
 		drawMargin = drawMargin / c
-	denominator = cumulativeTo(teamPerformaceDifference - drawMargin)
+	denominator = cumulativeTo(teamPerformanceDifference - drawMargin)
 	if denominator < 2.222758749e-162:
-		return -1 * teamPerfomanceDifference + drawMargin
+		return -1 * teamPerformanceDifference + drawMargin
 	else:
 		return at(teamPerformanceDifference - drawMargin) / denominator
 		
-def wExceedsMargin(teamPerfomanceDifference, drawMargin, c = None):
+def wExceedsMargin(teamPerformanceDifference, drawMargin, c = None):
 	if c is not None:
 		teamPerformanceDifference = teamPerformanceDifference / c
 		drawMargin = drawMargin / c
@@ -24,7 +24,7 @@ def wExceedsMargin(teamPerfomanceDifference, drawMargin, c = None):
 		if teamPerformanceDifference < 0.0:
 			return 1.0
 		return 0.0
-	vWin = vExceedMargin(teamPerformanceDifference, drawMargin)
+	vWin = vExceedsMargin(teamPerformanceDifference, drawMargin)
 	return vWin*(vWin + teamPerformanceDifference - drawMargin)
 	
 def vWithinMargin(teamPerformanceDifference, drawMargin, c = None):
@@ -37,7 +37,7 @@ def vWithinMargin(teamPerformanceDifference, drawMargin, c = None):
 		if teamPerformanceDifference < 0.0:
 			return -1*teamPerformanceDifference - drawMargin
 		return -1*teamPerformanceDifference + drawMargin
-	numerator = at(-1*drawMaring - teamPerformanceDifferenceAbsoluteValue) - at(drawMargin - treamPerformanceDifferenceAbsoluteValue)
+	numerator = at(-1*drawMargin - teamPerformanceDifferenceAbsoluteValue) - at(drawMargin - teamPerformanceDifferenceAbsoluteValue)
 	if teamPerformanceDifference < 0.0:
 		return -1*numerator/denomintor
 	return numerator / denominator
@@ -112,18 +112,18 @@ class TwoPlayerTrueSkillCalculator(SkillCalculator):
 			v = vWithinMargin(meanDelta, drawMargin, c)
 			w = wWithinMargin(meanDelta, drawMargin, c)
 			rankMultiplier = 1
-		meanMultiplier = ((selfRating.standardDeviation**2) + (gameInfor.dynamicsFactor**2)) / c
-		varianceWithDynamics = (selfRating.standardDeviation**2) + (gameInfor.dynamicsFactor**2)
+		meanMultiplier = ((selfRating.standardDeviation**2) + (gameInfo.dynamicsFactor**2)) / c
+		varianceWithDynamics = (selfRating.standardDeviation**2) + (gameInfo.dynamicsFactor**2)
 		stdDevMultiplier = varianceWithDynamics/(c**2)
 		newMean = selfRating.mean + (rankMultiplier*meanMultiplier*v)
-		netStdDev = sqrt(varianceWithDynamics*(1 - w*stdDevMultiplier))
+		newStdDev = sqrt(varianceWithDynamics*(1 - w*stdDevMultiplier))
 		return Rating(newMean, newStdDev)
 		
 	def calculateMatchQuality(self, gameInfo, teams):
 		argumentNotNone(gameInfo, "gameInfo")
 		self._validateTeamCountAndPlayersCountPerTeam(teams)
-		player1Rating = teams[0].asListOfTuples()[0][1]
-		player2Rating = teams[1].asListOfTuples()[0][1]
+		player1Rating = teams[0].asListOfTuples[0][1]
+		player2Rating = teams[1].asListOfTuples[0][1]
 		betaSquared = (gameInfo.beta**2)
 		player1SigmaSquared = (player1Rating.standardDeviation**2)
 		player2SigmaSquared = (player2Rating.standardDeviation**2)
