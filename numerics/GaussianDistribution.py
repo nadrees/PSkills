@@ -2,7 +2,6 @@ from math import sqrt
 from math import pi
 from math import log
 from math import e
-import unittest
 
 def fromRating(rating):
 	return GaussianDistribution(rating.mean, rating.standardDeviation)
@@ -137,71 +136,3 @@ class GaussianDistribution(object):
 
 	def divide(self, gaussian):
 		return fromPrecisionMean(self._precisionMean - gaussian.precisionMean, self._precision - gaussian.precision)
-		
-
-class GaussianDistributionTest(unittest.TestCase):
-	__errorTolerance = .000001	
-
-	def test_cumulativeToTests(self):
-		desired = 0.691462
-		actual = cumulativeTo(0.5)
-		self.assertAlmostEqual(first=desired, second=actual, delta=self.__errorTolerance)
-
-	def test_atTests(self):
-		desired = 0.352065
-		actual = at(0.5)
-		self.assertAlmostEqual(first=desired, second=actual, delta=self.__errorTolerance)
-
-	def test_multiplicationTests(self):
-		standardNormal = GaussianDistribution(0, 1)
-		shiftedGaussian = GaussianDistribution(2, 3)
-		product = standardNormal.mult(shiftedGaussian)
-		self.assertAlmostEqual(first=0.2, second=product.mean, delta=self.__errorTolerance)
-		self.assertAlmostEqual(first=(3.0/sqrt(10)), second=product.standardDeviation, delta=self.__errorTolerance)
-		m4s5 = GaussianDistribution(4, 5)
-		m6s7 = GaussianDistribution(6, 7)
-		product2 = m4s5.mult(m6s7)
-		expectedMean = (4.0*(7**2)+6*(5**2)) / ((5**2) + (7**2))
-		self.assertAlmostEqual(first=expectedMean, second=product2.mean, delta=self.__errorTolerance)
-		expectedSigma = sqrt(((5**2)*(7.0**2))/((5**2)+(7**2)))
-		self.assertAlmostEqual(first=expectedSigma, second=product2.standardDeviation, delta=self.__errorTolerance)
-
-	def test_divisionTests(self):
-		product = GaussianDistribution(0.2, 3.0 / sqrt(10))
-		standardNormal = GaussianDistribution(0, 1)
-		productDividedByStandardNormal = product.divide(standardNormal)
-		self.assertAlmostEqual(2.0, productDividedByStandardNormal.mean, delta=self.__errorTolerance)
-		self.assertAlmostEqual(3.0, productDividedByStandardNormal.standardDeviation, delta=self.__errorTolerance)
-		product2 = GaussianDistribution((4.0*(7**2)+6*(5**2))/((5**2)+(7**2)), sqrt(((5.0**2)*(7**2))/((5**2)+(7**2))))
-		m4s5 = GaussianDistribution(4, 5)
-		product2DividedByM4S5 = product2.divide(m4s5)
-		self.assertAlmostEqual(first=6.0, second=product2DividedByM4S5.mean, delta=self.__errorTolerance)
-		self.assertAlmostEqual(first=7.0, second=product2DividedByM4S5.standardDeviation, delta=self.__errorTolerance)
-
-	def test_logProductNormalizationTests(self):
-		standardNormal = GaussianDistribution(0, 1)
-		lpn = logProductNormalization(standardNormal, standardNormal)
-		self.assertAlmostEqual(-1.2655121234846454, lpn, delta=self.__errorTolerance)
-		m1s2 = GaussianDistribution(1, 2)
-		m3s4 = GaussianDistribution(3, 4)
-		lpn2 = logProductNormalization(m1s2, m3s4)
-		self.assertAlmostEqual(-2.5168046699816684, lpn2, delta=self.__errorTolerance)
-
-	def test_logRatioNormalizationTests(self):
-		m1s2 = GaussianDistribution(1, 2)
-		m3s4 = GaussianDistribution(3, 4)
-		lrn = logRatioNormalization(m1s2, m3s4)
-		self.assertAlmostEqual(first=2.6157405972171204, second=lrn, delta=self.__errorTolerance)
-
-	def test_absoluteDifferenceTests(self):
-		standardNormal = GaussianDistribution(0, 1)
-		absDiff = absoluteDifference(standardNormal, standardNormal)
-		self.assertAlmostEqual(first=0.0, second=absDiff, delta=self.__errorTolerance)
-		m1s2 = GaussianDistribution(1, 2)
-		m3s4 = GaussianDistribution(3, 4)
-		absDiff2 = absoluteDifference(m1s2, m3s4)
-		self.assertAlmostEqual(first=0.4330127018922193, second=absDiff2, delta=self.__errorTolerance)
-
-if __name__ == "__main__":
-	from MathUtils import mean
-	unittest.main()
