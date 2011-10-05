@@ -206,11 +206,11 @@ class Team(object):
 		
 	@property
 	def meanSum(self):
-		return reduce(sum, map(lambda playerTuple: return playerTuple[1].mean, self._playerRatings))
+		return sum(map(lambda playerTuple: playerTuple[1].mean, self._playerRatings))
 		
 	@property
-	def standardDeviationSum(self):
-		return reduce(sum, map(lambda playerTuple: return playerTuple[1].standardDeviation, self._playerRatings))
+	def standardDeviationSquaredSum(self):
+		return sum(map(lambda playerTuple: playerTuple[1].standardDeviation**2.0, self._playerRatings))
 
 class Rating(object):
 	'''Container for a player's rating'''

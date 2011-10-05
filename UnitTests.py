@@ -1,6 +1,6 @@
 from numerics import GaussianDistribution, logRatioNormalization, absoluteDifference, at, cumulativeTo, logProductNormalization, Matrix, _SquareMatrix, _IdentityMatrix
 from objects import sortByRank, Player, GameInfo, defaultGameInfo, Team, Rating
-from trueskill import TwoPlayerTrueSkillCalculator
+from trueskill import TwoPlayerTrueSkillCalculator, TwoTeamTrueSkillCalculator, getDrawMarginFromDrawProbability
 from math import sqrt
 import unittest
 
@@ -13,6 +13,34 @@ class AbstractTestCase(unittest.TestCase):
 		
 	def assertMatchQuality(self, expectedMatchQuality, actualMatchQuality):
 		self.assertAlmostEqual(expectedMatchQuality, actualMatchQuality, delta = 0.0005)
+
+class TwoTeamTrueSkillCalculatorTests(AbstractTestCase):
+	def setUp(self):
+		self.calculator = TwoTeamTrueSkillCalculator()
+		self.gameInfo = defaultGameInfo()
+		
+	def test_OneOnTwoSimple(self):
+		player1 = Player(1)
+		player2 = Player(2)
+		player3 = Player(3)
+		
+		team1 = Team(player1, self.gameInfo.defaultRating)
+		team2 = Team()
+		team2.addPlayer(player2, self.gameInfo.defaultRating)
+		team2.addPlayer(player3, self.gameInfo.defaultRating)
+		teams = [team1, team2]
+		
+		newRatings = self.calculator.calculateNewRatings(self.gameInfo, teams, [1, 2])
+		
+		for newRating in newRatings:
+			player = newRating[0]
+			if player == player1:
+				self.assertRating(33.730, 7.317, newRating[1])
+			elif player == player2:
+				self.assertRating(16.270, 7.317, newRating[1])
+			else:
+				self.assertRating(16.270, 7.317, newRating[1])
+		self.assertMatchQuality(0.135, self.calculator.calculateMatchQuality(self.gameInfo, teams))
 
 class TwoPlayerTrueSkillCalculatorTests(AbstractTestCase):
 	def setUp(self):
@@ -89,6 +117,19 @@ class TwoPlayerTrueSkillCalculatorTests(AbstractTestCase):
 				self.assertRating(1304.7820836053318, 42.843513887848658, newRating[1])
 			else:
 				self.assertRating(1185.0383099003536, 42.485604606897752, newRating[1])
+
+class DrawMarginTests(unittest.TestCase):
+	_errorTolerance = 0.000001
+	
+	def test_getDrawMarginFromDrawProbabilityTest(self):
+		beta = 25.0 / 6.0
+		self.assertDrawMargin(0.10, beta, 0.74046637542690541)
+		self.assertDrawMargin(0.25, beta, 1.87760059883033)
+		self.assertDrawMargin(0.33, beta, 2.5111010132487492)
+		
+	def assertDrawMargin(self, drawProbability, beta, expected):
+		actual = getDrawMarginFromDrawProbability(drawProbability, beta)
+		self.assertAlmostEqual(expected, actual, delta = self._errorTolerance)
 
 class SortByRankTests(unittest.TestCase):
 	def test_sortAlreadySortedTest(self):

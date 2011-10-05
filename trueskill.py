@@ -66,7 +66,7 @@ class TwoTeamTrueSkillCalculator(SkillCalculator):
 		'''Implementation for a 2 team game. Returns a list of tuples of (player, rating)'''
 		argumentNotNone(gameInfo, "gameInfo")
 		self._validateTeamCountAndPlayersCountPerTeam(teams)
-		teams, teamRanks = sortByRanks(teams, teamRanks)
+		teams, teamRanks = sortByRank(teams, teamRanks)
 		
 		team1 = teams[0]
 		team2 = teams[1]
@@ -87,8 +87,8 @@ class TwoTeamTrueSkillCalculator(SkillCalculator):
 		
 		selfTeamMeanSum = selfTeam.meanSum
 		otherTeamMeanSum = otherTeam.meanSum
-		selfTeamStandardDeviationSum = selfTeam.standardDeviationSum
-		otherTeamStandardDeviationSum = otherTeam.standardDeviationSum
+		selfTeamStandardDeviationSum = selfTeam.standardDeviationSquaredSum
+		otherTeamStandardDeviationSum = otherTeam.standardDeviationSquaredSum
 		
 		c = sqrt(selfTeamStandardDeviationSum + otherTeamStandardDeviationSum + totalPlayers*betaSquared)
 		winningMean = selfTeamMeanSum
@@ -113,9 +113,9 @@ class TwoTeamTrueSkillCalculator(SkillCalculator):
 		for playerTuple in selfTeam.asListOfTuples:
 			previousPlayerRating = playerTuple[1]
 			meanMultiplier = ((previousPlayerRating.standardDeviation**2.0) + tauSquared) / c
-			stdDevMultiplier = ((previousPlayerRating.standardDeviation**2.0) tauSquared) / (c**2.0)
+			stdDevMultiplier = ((previousPlayerRating.standardDeviation**2.0) + tauSquared) / (c**2.0)
 			playerMeanDelta = rankMultiplier*meanMultiplier*v
-			newMean = previousPlayerRating.mean + playerMeandDelta
+			newMean = previousPlayerRating.mean + playerMeanDelta
 			newStdDev = sqrt(((previousPlayerRating.standardDeviation**2.0) + tauSquared) * (1 - w*stdDevMultiplier))
 			newPlayerRatings.append((playerTuple[0], Rating(newMean, newStdDev)))
 			
@@ -130,10 +130,10 @@ class TwoTeamTrueSkillCalculator(SkillCalculator):
 		betaSquared = gameInfo.beta**2.0
 		
 		team1MeanSum = team1.meanSum
-		team1StdDevSum = reduce(sum, map(lambda playerTuple: return playerTuple[1].standardDeviation**2.0, team1.asListOfTuples))
+		team1StdDevSum = team1.standardDeviationSquaredSum
 		
 		team2MeanSum = team2.meanSum
-		team2StdDevSum = reduce(sum, map(lambda playerTuple: return playerTuple[1].standardDeviation**2.0, team2.asListOfTuples))
+		team2StdDevSum = team2.standardDeviationSquaredSum
 		
 		sqrtPart = sqrt((totalPlayers*betaSquared) / (totalPlayers*betaSquared + team1StdDevSum + team2StdDevSum))
 		expPart = e**((-1.0*(team1MeanSum - team2MeanSum)**2.0) / (2*(totalPlayers*betaSquared +team1StdDevSum + team2StdDevSum)))
