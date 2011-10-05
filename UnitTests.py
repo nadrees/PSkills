@@ -41,6 +41,48 @@ class TwoTeamTrueSkillCalculatorTests(AbstractTestCase):
 			else:
 				self.assertRating(16.270, 7.317, newRating[1])
 		self.assertMatchQuality(0.135, self.calculator.calculateMatchQuality(self.gameInfo, teams))
+	
+	def test_OneOnTwoDrawTest(self):
+		player1 = Player(1)
+		player2 = Player(2)
+		player3 = Player(3)
+		team1 = Team(player1, self.gameInfo.defaultRating)
+		team2 = Team(player2, self.gameInfo.defaultRating)
+		team2.addPlayer(player3, self.gameInfo.defaultRating)
+		teams = [team1, team2]
+		
+		newRatings = self.calculator.calculateNewRatings(self.gameInfo, teams, [1, 1])
+		
+		for newRating in newRatings:
+			player = newRating[0]
+			if player == player1:
+				self.assertRating(31.660, 7.138, newRating[1])
+			elif player == player2:
+				self.assertRating(18.340, 7.138, newRating[1])
+			else:
+				self.assertRating(18.340, 7.138, newRating[1])
+		self.assertMatchQuality(0.135, self.calculator.calculateMatchQuality(self.gameInfo, teams))
+		
+	def test_OneOnThreeDrawTest(self):
+		player1 = Player(1)
+		player2 = Player(2)
+		player3 = Player(3)
+		player4 = Player(4)
+		team1 = Team(player1, self.gameInfo.defaultRating)
+		team2 = Team(player2, self.gameInfo.defaultRating)
+		team2.addPlayer(player3, self.gameInfo.defaultRating)
+		team2.addPlayer(player4, self.gameInfo.defaultRating)
+		teams = [team1, team2]
+		
+		newRatings = self.calculator.calculateNewRatings(self.gameInfo, teams, [1, 1])
+		
+		for newRating in newRatings:
+			player = newRating[0]
+			if player == player1:
+				self.assertRating(34.990, 7.455, newRating[1])
+			else:
+				self.assertRating(15.010, 7.455, newRating[1])
+		self.assertMatchQuality(0.012, self.calculator.calculateMatchQuality(self.gameInfo, teams))
 
 class TwoPlayerTrueSkillCalculatorTests(AbstractTestCase):
 	def setUp(self):
