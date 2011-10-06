@@ -195,6 +195,7 @@ class Team(object):
 
 	def addPlayer(self, player, rating):
 		self._playerRatings.append((player, rating))
+		return self
 
 	@property
 	def asListOfTuples(self):
