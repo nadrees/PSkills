@@ -230,7 +230,7 @@ class FactorGraphLayer(object):
 		return self._outputVariablesGroups
 		
 	@property
-	def localFactors(self);
+	def localFactors(self):
 		return self._localFactors
 		
 	def scheduleSequence(self, itemsToSequence, name):
