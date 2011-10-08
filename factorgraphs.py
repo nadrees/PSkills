@@ -9,7 +9,7 @@ class Message(object):
 		
 	@value.setter
 	def value(self, value):
-		return Message(value, self._name)
+		self._value = value
 		
 	@property
 	def name(self):
@@ -27,7 +27,7 @@ class Message(object):
 		return (self == other) == False
 		
 	def __hash__(self):
-		return hash(self._name) ^ hash(self._value)
+		return hash(self._name)
 		
 class Variable(object):
 	def __init__(self, prior, name):
