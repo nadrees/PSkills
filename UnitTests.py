@@ -1,6 +1,6 @@
 from numerics import GaussianDistribution, logRatioNormalization, absoluteDifference, at, cumulativeTo, logProductNormalization, Matrix, _SquareMatrix, _IdentityMatrix
 from objects import sortByRank, Player, GameInfo, defaultGameInfo, Team, Rating
-from trueskill import TwoPlayerTrueSkillCalculator, TwoTeamTrueSkillCalculator, getDrawMarginFromDrawProbability
+from trueskill_simple import TwoPlayerTrueSkillCalculator, TwoTeamTrueSkillCalculator, getDrawMarginFromDrawProbability
 from math import sqrt
 import unittest
 

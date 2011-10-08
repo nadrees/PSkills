@@ -1,5 +1,6 @@
 from objects import SkillCalculator, SupportedOptions, argumentNotNone, sortByRank, PairwiseComparison, Rating
 from numerics import atLeast, exactly, inverseCumulativeTo, cumulativeTo, at
+from factorgraphs import FactorGraph
 from math import sqrt, e
 
 def getDrawMarginFromDrawProbability(drawProbability, beta):
