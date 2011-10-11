@@ -106,3 +106,67 @@ class GaussianPriorFactor(GaussianFactor):
 		variable.value = newMarginal
 		message.value = self._newMessage
 		return oldMarginal - newMarginal
+		
+class GaussianWeightedSumFactor(GaussianFactor):
+	'''Factor that sums together multiple Gaussians'''
+	def __init__(self, sumVariable, variablesToSum, variableWeights = None):
+		name = self._createName(sumVariable, variablesToSum, varaiableWeights)
+		super(GaussianWeightedSumFactor, self).__init__(name)
+		self._weights = [list() for i in range(len(variableWeights) + 1)]
+		self._weightsSquared = [list() for i in range(len(self._weights))]
+		self._variableIndexOrdersForWeights = list()
+		
+		# the first weights are a straightforward copy
+		# v_0 = a_1 * v_1 + a_2 * v_2 + ... + a_n * v_n
+		for variableWeight in variableWeights:
+			self._weights[0].append(variableWeight)
+			self._weightsSquared[0].append(variableWeight**2)
+		
+		# 0..n-1
+		temp = [i for i in range(len(variablesToSum))]
+		self._variableIndexOrdersForWeights.append(temp)
+		
+		# the rest move the variables around and divide out the constant
+		# for example:
+		# v_1 = (-a_2 / a_1) * v_2 + (-a_3 / a_1) * v_3 + ... + (1.0 / a_1) * v_0
+		# by convention, we'll put the v_0 term at the end
+		for weightsIndex in range(1, len(self._weights)):
+			currentWeights = [0]*len(variableWeights)
+			self._weights[weightsIndex] = currentWeights
+			
+			variableIndices = [0]*(len(variableWeights) + 1)
+			variableIndicies[0] = weightsIndex
+			
+			currentWeightsSquared = [0]*len(variableWeights)
+			self._weightsSquared[weightsIndex] = currentWeightsSquared
+			
+			currentDestinationWeightIndex = 0
+			for currentWeightSourceIndex in range(len(variableWeights)):
+				if currentWeightSourceIndex == weightsIndex - 1:
+					continue
+				currentWeight = 0.0
+				if variableWeights[weightsIndex - 1] != 0:
+					currentWeight = -1.0*variableWeights[currentWeightSourceIndex]/variableWeights[weightsIndex - 1]
+				currentWeights[currentDestinationWeightIndex] = currentWeight
+				currentWeightsSquared[currentDestinationWeightIndex] = currentWeight**2.0
+				variableIndicies[currentDestinationWeightIndex + 1] = currentWeightSourceIndex + 1
+				currentDestinationWeightIndex += 1
+			
+			finalWeight = 0.0
+			if variableWeights[weightsIndex - 1] != 0:
+				finalWeight = 1.0/variableWeights[weightsIndex - 1]
+			currentWeights[currentDestinationWeightIndex] = finalWeight
+			currentWeightsSquared[currentDestinationWeightIndex] = finalWeight**2.0
+			variableIndicies[len(variableIndicies) - 1] = 0
+			self._variableIndexOrdersForWeights.append(variableIndicies)
+			
+		self.createVariableToMessageBinding(sumVariable)
+		for currentVariable in variablesToSum:
+			self.createVariableToMessageBinding(currentVariable)
+			
+	@property
+	def logNormalization(self):
+		result = 0.0
+		for i in range(len(self._variables)):
+			result += logRatioNormalization(self._variables[i].value, self._messages[i].value)
+		return result
