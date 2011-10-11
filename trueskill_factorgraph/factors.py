@@ -1,7 +1,6 @@
 from factorgraphs import Factor, Message
-from numerics import logProductNormalization, fromPrecisionMean, cumulativeTo, logRatioNormalization, GaussianDistribution
+from numerics import logProductNormalization, fromPrecisionMean, cumulativeTo, logRatioNormalization, GaussianDistribution, wExceedsMargin, vExceedsMargin
 from math import log, sqrt
-from trueskill_simple import wExceedsMargin, vExceedsMargin
 from copy import deepcopy
 
 class GaussianFactor(Factor):

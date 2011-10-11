@@ -1,5 +1,6 @@
 from factorgraphs import FactorGraphLayer, ScheduleSequence, ScheduleStep
-from factors import GaussianPriorFactor
+from factors import GaussianPriorFactor, GaussianLikelihoodFactor, GaussianWithinFactor, GaussianGreaterThanFactor
+from numerics import getDrawMarginFromDrawProbability
 
 class IteratedTeamDifferenceInnerLayer(FactorGraphLayer):
 	def __init__(self, parentGraph, teamPerformancesToPerformanceDifferences, teamDifferencesComparisonLayer):
@@ -19,7 +20,7 @@ class PlayerPriorValuesToSkillsLayer(FactorGraphLayer):
 			currentTeamSkills = list()
 			for player, rating in currentTeam.iteritems():
 				playerSkill = self._createSkillOutputVariable(player)
-				self._addLayerFactor(self._createPriorFactor(player, rating, playerSkill))
+				self.addLayerFactor(self._createPriorFactor(player, rating, playerSkill))
 				currentTeamSkills.append(playerSkill)
 			self._outputVariablesGroups.append(currentTeamSkills)
 			
@@ -40,4 +41,38 @@ class PlayerSkillsToPerformancesLayer(FactorGraphLayer):
 		for currentTeam in self._inputVariablesGroups:
 			currentTeamPlayerPerformances = list()
 			for player, rating in currentTeam.iteritems():
-				#TODO finish
+				playerPerformance = self._createOutputVariable(player)
+				self.addLayerFactor(self._createLikelihood(rating, playerPerformance)
+				currentTeamPlayerPerformances.append(playerPerformance)
+			self._outputVariableGroups.append(currentTeamPlayerPerformances)
+	
+	def _createLikelihood(self, playerSkill, playerPerformance):
+		return GaussianLikelihoodFactor(self._parentFactorGraph.gameInfo.beta**2.0, playerPerformance, playerSkill)
+		
+	def _createOutputVariable(self, key):
+		return self._parentFactorGraph.variableFactory.createKeyedVariable("%s's performance" % key, key)
+		
+	def createPriorSchedule(self):
+		schedules = list()
+		for likelihood in self._localFactors:
+			schedules.append(ScheduleStep("Skill to perf step", likelihood, 0))
+		return ScheduleSequence("All skill to performance sending", schedules)
+		
+	def createPosteriorSchedule(self):
+		schedules = list()
+		for likelihood in self._localFactors:
+			schedules.append(ScheduleStep("name", likelihood, 1))
+		return ScheduleSequence("All skill to performance sending", schedules)
+		
+class TeamDifferenceComparisonLayer(FactorGraphLayer):
+	def __init__(self, parentGraph, teamRanks):
+		super(TeamDifferenceComparisonLayer, self).__init__(parentGraph)
+		self._teamRanks = teamRanks
+		self._epsilon = getDrawMarginFromDrawProbability(parentGraph.gameInfo.drawProbability, parentGraph.gameInfo.beta)
+		
+	def buildLayer(self):
+		for i in range(len(self._inputVariableGroups)):
+			isDraw = (self._teamRanks[i] == self._teamRanks[i + 1])
+			teamDifference = self._inputVariablesGroups[i][0]
+			factor = GaussianWithinFactor(self._epsilon, teamDifference) if isDraw else GaussianGreaterThanFactor(self._epsilon, teamDifference)
+			self.addLayerFactor(factor)
