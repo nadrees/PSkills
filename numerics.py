@@ -3,6 +3,57 @@ import sys
 
 _intMinValue = -sys.maxint - 1
 
+def getDrawMarginFromDrawProbability(drawProbability, beta):
+	return inverseCumulativeTo(0.5*(drawProbability + 1), 0, 1)*sqrt(1 + 1.0)*beta
+	
+def vExceedsMargin(teamPerformanceDifference, drawMargin, c = None):
+	if c is not None:
+		teamPerformanceDifference = teamPerformanceDifference / c
+		drawMargin = drawMargin / c
+	denominator = cumulativeTo(teamPerformanceDifference - drawMargin)
+	if denominator < 2.222758749e-162:
+		return -1.0 * teamPerformanceDifference + drawMargin
+	else:
+		return at(teamPerformanceDifference - drawMargin) / denominator
+		
+def wExceedsMargin(teamPerformanceDifference, drawMargin, c = None):
+	if c is not None:
+		teamPerformanceDifference = teamPerformanceDifference / c
+		drawMargin = drawMargin / c
+	denominator = cumulativeTo(teamPerformanceDifference - drawMargin)
+	if denominator < 2.222758749e-162:
+		if teamPerformanceDifference < 0.0:
+			return 1.0
+		return 0.0
+	vWin = vExceedsMargin(teamPerformanceDifference, drawMargin)
+	return vWin*(vWin + teamPerformanceDifference - drawMargin)
+	
+def vWithinMargin(teamPerformanceDifference, drawMargin, c = None):
+	if c is not None:
+		teamPerformanceDifference = teamPerformanceDifference / c
+		drawMargin = drawMargin / c
+	teamPerformanceDifferenceAbsoluteValue = abs(teamPerformanceDifference)
+	denominator = cumulativeTo(drawMargin - teamPerformanceDifferenceAbsoluteValue) - cumulativeTo(-1 * drawMargin - teamPerformanceDifferenceAbsoluteValue)
+	if denominator < 2.222758749e-162:
+		if teamPerformanceDifference < 0.0:
+			return -1.0*teamPerformanceDifference - drawMargin
+		return -1.0*teamPerformanceDifference + drawMargin
+	numerator = at(-1.0*drawMargin - teamPerformanceDifferenceAbsoluteValue) - at(drawMargin - teamPerformanceDifferenceAbsoluteValue)
+	if teamPerformanceDifference < 0.0:
+		return -1.0*numerator/denominator
+	return numerator / denominator
+	
+def wWithinMargin(teamPerformanceDifference, drawMargin, c = None):
+	if c is not None:
+		teamPerformanceDifference = teamPerformanceDifference / c
+		drawMargin = drawMargin / c
+	teamPerformanceDifferenceAbsoluteValue = abs(teamPerformanceDifference)
+	denominator = cumulativeTo(drawMargin - teamPerformanceDifferenceAbsoluteValue) - cumulativeTo(-1*drawMargin - teamPerformanceDifferenceAbsoluteValue)
+	if denominator < 2.222758749e-162:
+		return 1.0
+	vt = vWithinMargin(teamPerformanceDifferenceAbsoluteValue, drawMargin)
+	return vt**2.0 + ((drawMargin - teamPerformanceDifferenceAbsoluteValue)	* at(drawMargin - teamPerformanceDifferenceAbsoluteValue) - (-1 * drawMargin - teamPerformanceDifferenceAbsoluteValue) * at(-1 * drawMargin - teamPerformanceDifferenceAbsoluteValue))/denominator
+
 def mean(items):
 	return sum(items)/len(items)
 
