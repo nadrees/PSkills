@@ -1,5 +1,5 @@
-from objects import SkillCalculator, SupportedOptions, argumentNotNone, getPartialPlayPercentage
-from numerics import atLeast, Vector, DiagonalMatrix, Matrix, fromPrecisionMean
+from objects import SkillCalculator, SupportedOptions, argumentNotNone, getPartialPlayPercentage, sortByRank
+from numerics import atLeast, _Vector, _DiagonalMatrix, Matrix, fromPrecisionMean
 from math import e, sqrt
 from layers import TrueSkillFactorGraph
 
@@ -7,9 +7,9 @@ class FactorGraphTrueSkillCalculator(SkillCalculator):
 	def __init__(self):
 		super(FactorGraphTrueSkillCalculator, self).__init__(SupportedOptions.PARTIAL_PLAY | SupportedOptions.PARTIAL_UPDATE, atLeast(2), atLeast(1))
 	
-	def calculateNewRating(self, gameInfo, teams, teamRanks):
+	def calculateNewRatings(self, gameInfo, teams, teamRanks):
 		argumentNotNone(gameInfo, "gameInfo")
-		self.validateTeamCountAndPlayersCountPerTeam(teams)
+		self._validateTeamCountAndPlayersCountPerTeam(teams)
 		teams, teamRanks = sortByRank(teams, teamRanks)
 		
 		factorGraph = TrueSkillFactorGraph(gameInfo, teams, teamRanks)
@@ -48,10 +48,10 @@ class FactorGraphTrueSkillCalculator(SkillCalculator):
 		return result
 		
 	def _getPlayerMeansVector(self, teamAssignmentsList):
-		return Vector(self._getPlayerRatingValues(teamAssigmentsList, lambda rating: rating.mean))
+		return _Vector(self._getPlayerRatingValues(teamAssigmentsList, lambda rating: rating.mean))
 		
 	def _getPlayerCovarianceMatrix(self, teamAssignmentList):
-		return DiagonalMatrix(self._getPlayerRatingValues(teamAssigmentsList, lambda rating: rating.standardDeviation**2.0))
+		return _DiagonalMatrix(self._getPlayerRatingValues(teamAssigmentsList, lambda rating: rating.standardDeviation**2.0))
 		
 	def _getPlayerRatingValues(self, teamAssigmentsList, playerRatingFunction):
 		playerRatingValues = list()

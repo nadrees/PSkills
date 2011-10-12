@@ -1,4 +1,4 @@
-from factorgraphs import FactorGraphLayer, ScheduleSequence, ScheduleStep, FactorGraph, FactorList
+from factorgraphs import FactorGraphLayer, ScheduleSequence, ScheduleStep, FactorGraph, FactorList, VariableFactory
 from factors import GaussianPriorFactor, GaussianLikelihoodFactor, GaussianWithinFactor, GaussianGreaterThanFactor
 from numerics import getDrawMarginFromDrawProbability
 from math import e
@@ -106,9 +106,9 @@ class IteratedTeamDifferencesInnerLayer(FactorGraphLayer):
 			currentForwardSchedulePiece = ScheduleSequence("current forward schedule piece %i" % i, [
 				ScheduleStep("team perf to perf diff %i" % i,
 					self._teamPerformancesToTeamPerformanceDifferencesLayer.localFactors[i], 0),
-				ScheduleStep("greater than or within result factor %i", % i,
+				ScheduleStep("greater than or within result factor %i" % i,
 					self._teamPerformancesToTeamPerformanceDifferencesLayer.localFactors[i], 0),
-				ScheduleStep("team perf to perf diff factors [%i], 2", % i,
+				ScheduleStep("team perf to perf diff factors [%i], 2" % i,
 					self._teamPerformancesToTeamPerformanceDifferencesLayer.localFactors[i], 2)
 				])
 			forwardScheduleList.append(currentForwardSchedulePiece)
@@ -168,7 +168,7 @@ class PlayerSkillsToPerformancesLayer(FactorGraphLayer):
 			currentTeamPlayerPerformances = list()
 			for player, rating in currentTeam.iteritems():
 				playerPerformance = self._createOutputVariable(player)
-				self.addLayerFactor(self._createLikelihood(rating, playerPerformance)
+				self.addLayerFactor(self._createLikelihood(rating, playerPerformance))
 				currentTeamPlayerPerformances.append(playerPerformance)
 			self._outputVariableGroups.append(currentTeamPlayerPerformances)
 	
@@ -190,6 +190,36 @@ class PlayerSkillsToPerformancesLayer(FactorGraphLayer):
 			schedules.append(ScheduleStep("name", likelihood, 1))
 		return ScheduleSequence("All skill to performance sending", schedules)
 		
+class PlayerPerformancesToTeamPerformancesLayer(FactorGraphLayer):
+	def buildLayer(self):
+		for currentTeam in self._inputVariableGroups:
+			teamPerformance = self._createOutputVariable(currentTeam)
+			self.addLayerFactor(self._createPlayerToTeamSumFactor(currentTeam, teamPerformance))
+			self._outputVariablesGroups.append([teamPerformance])
+			
+	def createPriorSchedule(self):
+		sequence = list()
+		for weightedSumFactor in self._localFactors:
+			sequence.append(ScheduleStep("Perf to Team Perf step", weightedSumFactor, 0))
+		return ScheduleSequence("all player perf to team perf schedule", sequence)
+		
+	def _createPlayerToTeamSumFactor(self, teamMembers, sumVariable):
+		partialPlayPercentages = list()
+		for v in teamMembers:
+			partialPlayPercentages.append(getPartialPlayPercentage(c.key))
+		return GaussianWeightedSumFactor(sumVariable, teamMembers, partialPlayPercentages)
+		
+	def createPosteriorSchedule(self):
+		sequence = list()
+		for currentFactor in self._localFactors:
+			for currentIteration in range(1, currentFactor.numberOfMessages - 1):
+				sequence.append(ScheduleStep("teamsum perf @ %i" % currentIteration, currentFactor, currentIteration))
+		return ScheduleSequence("all of the team's sum iterations", sequence)
+		
+	def _createOutputVariable(self, team):
+		teamMemberNames = reduce(lambda x,y: "%s,%s" % (x, y), map(lambda teamMember: "%s" % teamMember.key, team))
+		return self._parentFactoryGraph.variableFactor.createBasicVariable("Team[%s]'s perfromance" % teamMemberNames)
+
 class TeamDifferenceComparisonLayer(FactorGraphLayer):
 	def __init__(self, parentGraph, teamRanks):
 		super(TeamDifferenceComparisonLayer, self).__init__(parentGraph)

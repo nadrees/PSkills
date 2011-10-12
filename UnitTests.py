@@ -2,6 +2,7 @@ from numerics import GaussianDistribution, logRatioNormalization, absoluteDiffer
 from objects import sortByRank, Player, GameInfo, defaultGameInfo, Team, Rating
 from trueskill_simple import TwoPlayerTrueSkillCalculator, TwoTeamTrueSkillCalculator, getDrawMarginFromDrawProbability
 from math import sqrt
+from trueskill_factorgraph.ts_factorgraph import FactorGraphTrueSkillCalculator
 import unittest
 
 _errorTolerance = 0.085
@@ -313,6 +314,11 @@ class TwoTeamTrueSkillCalculatorTests(TwoPlayerTrueSkillCalculatorTests):
 			else:
 				self.assertRating(36.211, 4.768, newRating[1])
 		self.assertMatchQuality(0.084, self.calculator.calculateMatchQuality(self.gameInfo, teams))
+		
+class FactorGraphTrueSkillCalculatorTests(TwoTeamTrueSkillCalculatorTests):
+	def setUp(self):
+		self.calculator = FactorGraphTrueSkillCalculator()
+		self.gameInfo = defaultGameInfo()
 
 class DrawMarginTests(unittest.TestCase):
 	_errorTolerance = 0.000001
