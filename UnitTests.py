@@ -97,26 +97,26 @@ def twoPlayerChessTestNotDrawn(self):
 			self.assertRating(1185.0383099003536, 42.485604606897752, newRating[1])
 
 def oneOnTwoSomewhatBalanced(self):
-		player1 = Player(1)
-		player2 = Player(2)
-		player3 = Player(3)
-		
-		team1 = Team(player1, Rating(40, 6))
-		team2 = Team(player2, Rating(20, 7))
-		team2.addPlayer(player3, Rating(25, 8))
-		teams = [team1, team2]
-		
-		newRatings = self.calculator.calculateNewRatings(self.gameInfo, teams, [1, 2])
-		
-		for newRating in newRatings:
-			player = newRating[0]
-			if player == player1:
-				self.assertRating(42.744, 5.602, newRating[1])
-			elif player == player2:
-				self.assertRating(16.266, 6.359, newRating[1])
-			else:
-				self.assertRating(20.123, 7.028, newRating[1])
-		self.assertMatchQuality(0.478, self.calculator.calculateMatchQuality(self.gameInfo, teams))
+	player1 = Player(1)
+	player2 = Player(2)
+	player3 = Player(3)
+	
+	team1 = Team(player1, Rating(40, 6))
+	team2 = Team(player2, Rating(20, 7))
+	team2.addPlayer(player3, Rating(25, 8))
+	teams = [team1, team2]
+	
+	newRatings = self.calculator.calculateNewRatings(self.gameInfo, teams, [1, 2])
+	
+	for newRating in newRatings:
+		player = newRating[0]
+		if player == player1:
+			self.assertRating(42.744, 5.602, newRating[1])
+		elif player == player2:
+			self.assertRating(16.266, 6.359, newRating[1])
+		else:
+			self.assertRating(20.123, 7.028, newRating[1])
+	self.assertMatchQuality(0.478, self.calculator.calculateMatchQuality(self.gameInfo, teams))
 		
 def oneOnTwoSimple(self):
 	player1 = Player(1)
@@ -468,12 +468,12 @@ class GaussianDistributionTest(unittest.TestCase):
 	def test_multiplicationTests(self):
 		standardNormal = GaussianDistribution(0, 1)
 		shiftedGaussian = GaussianDistribution(2, 3)
-		product = standardNormal.mult(shiftedGaussian)
+		product = standardNormal*shiftedGaussian
 		self.assertAlmostEqual(first=0.2, second=product.mean, delta=self.__errorTolerance)
 		self.assertAlmostEqual(first=(3.0/sqrt(10)), second=product.standardDeviation, delta=self.__errorTolerance)
 		m4s5 = GaussianDistribution(4, 5)
 		m6s7 = GaussianDistribution(6, 7)
-		product2 = m4s5.mult(m6s7)
+		product2 = m4s5*m6s7
 		expectedMean = (4.0*(7**2)+6*(5**2)) / ((5**2) + (7**2))
 		self.assertAlmostEqual(first=expectedMean, second=product2.mean, delta=self.__errorTolerance)
 		expectedSigma = sqrt(((5**2)*(7.0**2))/((5**2)+(7**2)))
@@ -482,12 +482,12 @@ class GaussianDistributionTest(unittest.TestCase):
 	def test_divisionTests(self):
 		product = GaussianDistribution(0.2, 3.0 / sqrt(10))
 		standardNormal = GaussianDistribution(0, 1)
-		productDividedByStandardNormal = product.divide(standardNormal)
+		productDividedByStandardNormal = product/standardNormal
 		self.assertAlmostEqual(2.0, productDividedByStandardNormal.mean, delta=self.__errorTolerance)
 		self.assertAlmostEqual(3.0, productDividedByStandardNormal.standardDeviation, delta=self.__errorTolerance)
 		product2 = GaussianDistribution((4.0*(7**2)+6*(5**2))/((5**2)+(7**2)), sqrt(((5.0**2)*(7**2))/((5**2)+(7**2))))
 		m4s5 = GaussianDistribution(4, 5)
-		product2DividedByM4S5 = product2.divide(m4s5)
+		product2DividedByM4S5 = product2/m4s5
 		self.assertAlmostEqual(first=6.0, second=product2DividedByM4S5.mean, delta=self.__errorTolerance)
 		self.assertAlmostEqual(first=7.0, second=product2DividedByM4S5.standardDeviation, delta=self.__errorTolerance)
 

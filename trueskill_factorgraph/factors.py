@@ -169,3 +169,104 @@ class GaussianWeightedSumFactor(GaussianFactor):
 		for i in range(len(self._variables)):
 			result += logRatioNormalization(self._variables[i].value, self._messages[i].value)
 		return result
+		
+	def _updateHelper(self, weights, weightsSquared, messages, variables):
+		message0 = deepcopy(message[0].value)
+		marginal0 = deepcopy(variables[0].value)
+		
+		inverseOfNewPrecisionSum = 0.0
+		anotherInverseOfNewPrecisionSum = 0.0
+		weightedMeanSum = 0.0
+		anotherWeightedMeanSum = 0.0
+		
+		for i in range(len(weightsSquared)):
+			inverseOfNewPrecisionSum += weightsSquared[i]/(variables[i + 1].value.precision - messages[i + 1].value.precision)
+			diff = (variables[i + 1].value/messages[i + 1].value)
+			anotherInverseOfNewPrecisionSum += weightsSquared[i]/diff.precision
+			
+			weightedMeanSum += weights[i] * (variables[i + 1].value.precisionMean - messages[i + 1].value.precisionMean) / (variables[i + 1].value.precision - messages[i + 1].value.precision)
+			anotherWeightedMeanSum += weights[i] * diff.precisionMean/diff.precision
+			
+		newPrecision = 1.0/inverseOfNewPrecisionSum
+		anotherNewPrecision = 1.0/anotherInverseOfNewPrecisionSum
+		
+		newPrecisionMean = newPrecision*weightedMeanSum
+		anotherNewPrecisionMean = anotherNewPrecision*anotherWeightedMeanSum
+		
+		newMessage = fromPrecisionMean(newPrecisionMean, newPrecision)
+		oldMarginalWithoutMessage = marginal0/message0
+		
+		newMarginal = oldMarginalWithoutMessage*newMessage
+		
+		message[0].value = newMessage
+		variables[0].value = newMarginal
+		
+		return newMarginal - marginal0
+		
+	def updateMessage(self, messageIndex):
+		updatedMessages = list()
+		updatedVariables = list()
+		
+		indiciesToUse = self._variableIndexOrdersForWeights[messageIndex]
+		
+		for i in range(len(self._messages)):
+			updatedMessages.append(self._messages[indiciesToUse[i]])
+			updatedVariables.append(self._variables[indiciesToUse[i]])
+			
+		return self._updateHelper(self._weights[messageIndex], self._weightsSquared[messageIndex], updatedMessages, updatedVariables)
+		
+	def _createName(self, sumVariable, variablesToSum, weights):
+		name = "%s=" % sumVariable
+		for i in range(len(variablesToSum)):
+			isFirst = (i == 0)
+			if isFirst and (weights[i] < 0):
+				name += "-"
+			name += "%2f*[%s]" % (abs(weights[i]), variablesToSum[i])
+			isLast = (i == len(variablesToSum) - 1)
+			if isLast == False:
+				if weights[i + 1] >= 0:
+					name += " + "
+				else:
+					name += " - "
+		return name
+		
+class GaussianWithinFactor(GaussianFactor):
+	def __init__(self, epsilon, variable):
+		super(GaussianWithinFactor, self).__init__("%s <= %f" % (variable, epsilon))
+		self._epsilon = epsilon
+		self.createVariableToMessageBinding(variable)
+	
+	@property
+	def logNormalization(self):
+		marginal = self._variables[0].value
+		message = self._messages[0].value
+		messageFromVariable = marginal/message
+		mean = messageFromVariable.mean
+		std = messageFromVariable.standardDeviation
+		z = cumulativeTo((self._epsilon - mean) / std) - cumulativeTo((-1.0 * self._epsilon - mean) / std)
+		return -1.0 * logProductNormalization(messageFromVariable, message) + log(z)
+		
+	def updateMessage(message, variable):
+		oldMarginal = deepcopy(variable.value)
+		oldMessage = deepcopy(message.value)
+		messageFromVariable = oldMarginal/oldMessage
+		
+		c = messageFromVariable.precision
+		d = messageFromVariable.precisionMean
+		
+		sqrtC = sqrt(c)
+		dOnSqrtC = d/sqrt(c)
+		
+		epsilonTimesSqrtC = self._epsilon*sqrtC
+	
+		denominator = 1.0 - wWithinMargin(dOnSqrtC, epsilonTimesSqrtC)
+		newPrecision = c/denominator
+		newPrecisionMean = (d + sqrtC * vWithinMargin(dOnSqrtC, epsilonTimesSqrtC))/denominator
+		
+		newMarginal = fromPrecisionMean(newPrecisionMean, newPrecision)
+		newMessage = oldMessage*newMarginal/oldMarginal
+		
+		message.value = newMessage
+		variable.value = newMarginal
+		
+		return newMarginal - oldMarginal

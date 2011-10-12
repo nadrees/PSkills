@@ -185,10 +185,10 @@ class GaussianDistribution(object):
 		self._precision = (precision if precision is not None else 1.0/(standardDeviation**2.0))
 		self._precisionMean = (precisionMean if precisionMean is not None else mean/(standardDeviation**2.0))
 
-	def mult(self, gaussian):
+	def __mul__(self, gaussian):
 		return fromPrecisionMean(self._precisionMean + gaussian.precisionMean, self._precision + gaussian.precision)
 
-	def divide(self, gaussian):
+	def __div__(self, gaussian):
 		return fromPrecisionMean(self._precisionMean - gaussian.precisionMean, self._precision - gaussian.precision)
 
 class Matrix(object):
