@@ -9,3 +9,5 @@ sys.path.append(PATH)
 sys.path.append(INCLUDE_PATH)
 
 import factors
+import layers
+import ts_factorgraph

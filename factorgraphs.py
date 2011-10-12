@@ -217,6 +217,10 @@ class FactorGraphLayer(object):
 	def inputVariablesGroups(self):
 		return self._inputVariablesGroups
 		
+	@inputVariablesGroups.setter
+	def inputVariablesGroups(self, value):
+		self._inputVariablesGroups = value
+		
 	@property
 	def parentFactorGraph(self):
 		return self._parentFactorGraph
