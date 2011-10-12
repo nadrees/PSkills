@@ -1,3 +1,6 @@
+from numerics import fromPrecisionMean
+from numerics import fromRating
+
 _defaultPartialPlayPercentage = 1.0
 _defaultPartialUpdatePercentage = 1.0
 
@@ -51,13 +54,11 @@ def sortByRank(teams, ranks):
 	return (teams, ranks)
 
 def partialUpdate(prior, fullPosterior, updatePercentage):
-	priorGaussian = GaussianDistribution.fromRating(prior)
-	posteriorGaussian = GaussianDistribution.fromRating(fullPosterior)
-	precisionDifference = posteriorGaussian.precision - priorGaussian.precision
-	partialPrecisionDifference = updatePercentage*precisionDifference
+	priorGaussian = fromRating(prior)
+	posteriorGaussian = fromRating(fullPosterior)
 	precisionMeanDifference = posteriorGaussian.precisionMean - priorGaussian.precisionMean
 	partialPrecisionMeanDifference = updatePercentage*precisionMeanDifference
-	partialPosteriorGaussian = GaussianDistribtuion.fromPrecisionMean(priorGaussian.precisionMean + partialPrecisionMeanDifference, priorGaussian.precision + partialPrecisionMeanDifference)
+	partialPosteriorGaussian = fromPrecisionMean(priorGaussian.precisionMean + partialPrecisionMeanDifference, priorGaussian.precision + partialPrecisionMeanDifference)
 	return Rating(partialPosteriorGaussian.mean, partialPosteriorGaussian.standardDeviation, prior.conservativeStandardDeviationMultiplier)
 
 def calcMeanMean(ratings):
@@ -79,6 +80,7 @@ class GameInfo(object):
 	'''Parameters about the game for calculating the TrueSkill'''
 	@property
 	def initialMean(self):
+		'''The initial mean of the player's skill level, usually 25'''
 		return self._initialMean
 
 	@initialMean.setter
@@ -87,6 +89,7 @@ class GameInfo(object):
 
 	@property
 	def initialStandardDeviation(self):
+		'''The initial standard deviation of the player's skill, usually 8.3333'''
 		return self._initialStandardDeviation
 
 	@initialStandardDeviation.setter
@@ -95,6 +98,8 @@ class GameInfo(object):
 
 	@property
 	def beta(self):
+		'''The number of 'skill points' needed to gaurentee an 80% change for a better player
+		to win against a lesser player'''
 		return self._beta
 
 	@beta.setter
@@ -103,6 +108,8 @@ class GameInfo(object):
 
 	@property
 	def dynamicsFactor(self):
+		'''The amount of uncertainty that should be added before each play to keep the skills
+		from becoming stale'''
 		return self._dynamicsFactor
 
 	@dynamicsFactor.setter
@@ -111,6 +118,7 @@ class GameInfo(object):
 
 	@property
 	def drawProbability(self):
+		'''The probability of a game ending in a draw'''
 		return self._drawProbability
 
 	@drawProbability.setter

@@ -289,7 +289,6 @@ class TwoTeamTrueSkillCalculatorTests(TwoPlayerTrueSkillCalculatorTests):
 		teams = [team1, team2]
 	
 		for newRating in self.calculator.calculateNewRatings(self.gameInfo, teams, [1, 1]):
-			player = newRating[0]
 			self.assertRating(25, 7.455, newRating[1])
 		self.assertMatchQuality(0.447, self.calculator.calculateMatchQuality(self.gameInfo, teams))
 		
