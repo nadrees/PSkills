@@ -63,7 +63,7 @@ class TrueSkillFactorGraph(FactorGraph):
 
 class IteratedTeamDifferencesInnerLayer(FactorGraphLayer):
 	def __init__(self, parentGraph, teamPerformancesToPerformanceDifferences, teamDifferencesComparisonLayer):
-		super(IteratedTeamDifferenceInnerLayer, self).__init__(parentGraph)
+		super(IteratedTeamDifferencesInnerLayer, self).__init__(parentGraph)
 		self._teamPerformancesToPerformanceDifferences = teamPerformancesToPerformanceDifferences
 		self._teamDifferencesComparisonLayer = teamDifferencesComparisonLayer
 		
@@ -220,9 +220,9 @@ class PlayerPerformancesToTeamPerformancesLayer(FactorGraphLayer):
 		teamMemberNames = reduce(lambda x,y: "%s,%s" % (x, y), map(lambda teamMember: "%s" % teamMember.key, team))
 		return self._parentFactoryGraph.variableFactor.createBasicVariable("Team[%s]'s perfromance" % teamMemberNames)
 
-class TeamDifferenceComparisonLayer(FactorGraphLayer):
+class TeamDifferencesComparisonLayer(FactorGraphLayer):
 	def __init__(self, parentGraph, teamRanks):
-		super(TeamDifferenceComparisonLayer, self).__init__(parentGraph)
+		super(TeamDifferencesComparisonLayer, self).__init__(parentGraph)
 		self._teamRanks = teamRanks
 		self._epsilon = getDrawMarginFromDrawProbability(parentGraph.gameInfo.drawProbability, parentGraph.gameInfo.beta)
 		
@@ -232,3 +232,17 @@ class TeamDifferenceComparisonLayer(FactorGraphLayer):
 			teamDifference = self._inputVariablesGroups[i][0]
 			factor = GaussianWithinFactor(self._epsilon, teamDifference) if isDraw else GaussianGreaterThanFactor(self._epsilon, teamDifference)
 			self.addLayerFactor(factor)
+			
+class TeamPerformancesToTeamPerformancesDifferencesLayer(FactorGraphLayer):
+	def buildLayer(self):
+		for i in range(len(self._inputVariableGroups) - 1):
+			strongerTeam = self._inputVariableGroups[i][0]
+			weakerTeam = self._inputVariableGroups[i + 1][0]
+			currentDifference = self._createOutputVariable()
+			self.addLayerFactor(self._createTeamPerformancesToDifferenceFactor(strongerTeam, weakerTeam, currentDifference))
+			
+	def _createTeamPerformancesToDifferenceFactor(self, strongerTeam, weakerTeam, currentDifference):
+		return GaussianWeightedSumFactor(output, [strongerTeam, weakerTeam], [1.0, -1.0])
+		
+	def _createOutputVariable(self):
+		return self._parentGraph.variableFactory.createBasicVariable("Team performance difference")
