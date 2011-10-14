@@ -1,4 +1,4 @@
-from math import sqrt, pi, log, e, floor
+from math import sqrt, pi, log, e
 import sys
 
 _intMinValue = -sys.maxint - 1
@@ -60,7 +60,7 @@ def mean(items):
 def fromRating(rating):
 	return GaussianDistribution(rating.mean, rating.standardDeviation)
 
-def fromGaussianDistribution(distibution):
+def fromGaussianDistribution(distribution):
 	return GaussianDistribution(distribution.mean, distribution.standardDeviation, distribution.precision, distribution.precisionMean)
 
 def fromPrecisionMean(precisionMean, precision):
@@ -78,7 +78,7 @@ def sub(left, right):
 	return absoluteDifference(left, right)
 
 def divide(numerator, denominator):
-	return numeration.divide(denominator)
+	return numerator / denominator
 
 def logRatioNormalization(numerator, denominator):
 	if numerator.precision == 0 or denominator.precision == 0:
@@ -296,8 +296,6 @@ class Matrix(object):
 					resultValues[currentRow][currentColumn] = productValue
 			return Matrix(resultValues)
 		else:
-			rows = self._rows
-			columns = self._cols
 			newValues = [[0]*len(self._values[0]) for i in range(len(self._values))]
 			for i in range(len(self._values)):
 				for j in range(len(self._values[0])):

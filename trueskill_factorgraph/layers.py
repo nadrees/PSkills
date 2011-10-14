@@ -1,7 +1,11 @@
-from factorgraphs import FactorGraphLayer, ScheduleSequence, ScheduleStep, FactorGraph, FactorList, VariableFactory
-from factors import GaussianPriorFactor, GaussianLikelihoodFactor, GaussianWithinFactor, GaussianGreaterThanFactor
-from numerics import getDrawMarginFromDrawProbability
+from factorgraphs import FactorGraphLayer, ScheduleSequence, ScheduleStep, \
+	ScheduleLoop, FactorGraph, FactorList, VariableFactory
+from factors import GaussianPriorFactor, GaussianLikelihoodFactor, \
+	GaussianWithinFactor, GaussianGreaterThanFactor
 from math import e
+from numerics import getDrawMarginFromDrawProbability, fromPrecisionMean
+from objects import Rating, getPartialPlayPercentage
+from trueskill_factorgraph.factors import GaussianWeightedSumFactor
 
 class TrueSkillFactorGraph(FactorGraph):
 	def __init__(self, gameInfo, teams, teamRanks):
@@ -84,7 +88,6 @@ class IteratedTeamDifferencesInnerLayer(FactorGraphLayer):
 			loop = self._createMultipleTeamInnerPriorLoopSchedule()
 			
 		totalTeamDifferences = len(self._teamPerformancesToTeamPerformanceDifferencesLayer.localFactors)
-		totalteams = totalTeamDifferences + 1
 		
 		step1 = ScheduleStep("teamPerformanceToPerformanceDifferenceFactors[0] @ 1",	self._teamPerformancesToTeamPerformanceDifferencesLayer.localFactors[0], 1)
 		step2 = ScheduleStep("teamPerformanceToPerformanceDifferenceFactors[teamTeamDifferences = %i - 1] @ 2" % totalTeamDifferences, self._teamPerformancesToTeamPerformanceDifferencesLayer.localFactors[totalTeamDifferences - 1], 2)
@@ -144,7 +147,7 @@ class PlayerPriorValuesToSkillsLayer(FactorGraphLayer):
 	def buildLayer(self):
 		for currentTeam in self._teams:
 			currentTeamSkills = list()
-			for player, rating in currentTeam.iteritems():
+			for player, rating in currentTeam.asListOfTuples():
 				playerSkill = self._createSkillOutputVariable(player)
 				self.addLayerFactor(self._createPriorFactor(player, rating, playerSkill))
 				currentTeamSkills.append(playerSkill)
@@ -157,7 +160,7 @@ class PlayerPriorValuesToSkillsLayer(FactorGraphLayer):
 		return ScheduleSequence("All priors", schedules)
 		
 	def _createPriorFactor(self, player, priorRating, skillsVariable):
-		return GaussianPriorFactor(priorRating.mean, priorRating.standardDeviation**2.0, self_parentFactorGraph.gameInfo.dynamicsFactor**2.0, skillsVariable)
+		return GaussianPriorFactor(priorRating.mean, priorRating.standardDeviation**2.0, self._parentFactorGraph.gameInfo.dynamicsFactor**2.0, skillsVariable)
 		
 	def _createSkillOutputVariable(self, player):
 		return self._paretFactorGraph.variableFactory.createKeyedVariable("%s's skill" % player, player)
@@ -206,7 +209,7 @@ class PlayerPerformancesToTeamPerformancesLayer(FactorGraphLayer):
 	def _createPlayerToTeamSumFactor(self, teamMembers, sumVariable):
 		partialPlayPercentages = list()
 		for v in teamMembers:
-			partialPlayPercentages.append(getPartialPlayPercentage(c.key))
+			partialPlayPercentages.append(getPartialPlayPercentage(v.key))
 		return GaussianWeightedSumFactor(sumVariable, teamMembers, partialPlayPercentages)
 		
 	def createPosteriorSchedule(self):
@@ -242,7 +245,7 @@ class TeamPerformancesToTeamPerformancesDifferencesLayer(FactorGraphLayer):
 			self.addLayerFactor(self._createTeamPerformancesToDifferenceFactor(strongerTeam, weakerTeam, currentDifference))
 			
 	def _createTeamPerformancesToDifferenceFactor(self, strongerTeam, weakerTeam, currentDifference):
-		return GaussianWeightedSumFactor(output, [strongerTeam, weakerTeam], [1.0, -1.0])
+		return GaussianWeightedSumFactor(currentDifference, [strongerTeam, weakerTeam], [1.0, -1.0])
 		
 	def _createOutputVariable(self):
 		return self._parentGraph.variableFactory.createBasicVariable("Team performance difference")

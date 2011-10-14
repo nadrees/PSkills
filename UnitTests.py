@@ -1,8 +1,11 @@
-from numerics import GaussianDistribution, logRatioNormalization, absoluteDifference, at, cumulativeTo, logProductNormalization, Matrix, _SquareMatrix, _IdentityMatrix
-from objects import sortByRank, Player, GameInfo, defaultGameInfo, Team, Rating
-from trueskill_simple import TwoPlayerTrueSkillCalculator, TwoTeamTrueSkillCalculator, getDrawMarginFromDrawProbability
 from math import sqrt
+from numerics import GaussianDistribution, logRatioNormalization, \
+	absoluteDifference, at, cumulativeTo, logProductNormalization, Matrix, \
+	_SquareMatrix, _IdentityMatrix
+from objects import sortByRank, Player, GameInfo, defaultGameInfo, Team, Rating
 from trueskill_factorgraph.ts_factorgraph import FactorGraphTrueSkillCalculator
+from trueskill_simple import TwoPlayerTrueSkillCalculator, \
+	TwoTeamTrueSkillCalculator, getDrawMarginFromDrawProbability
 import unittest
 
 _errorTolerance = 0.085

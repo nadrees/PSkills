@@ -1,7 +1,8 @@
-from objects import SkillCalculator, SupportedOptions, argumentNotNone, getPartialPlayPercentage, sortByRank
-from numerics import atLeast, _Vector, _DiagonalMatrix, Matrix, fromPrecisionMean
-from math import e, sqrt
 from layers import TrueSkillFactorGraph
+from math import e, sqrt
+from numerics import atLeast, _Vector, _DiagonalMatrix, Matrix
+from objects import SkillCalculator, SupportedOptions, argumentNotNone, \
+	getPartialPlayPercentage, sortByRank
 
 class FactorGraphTrueSkillCalculator(SkillCalculator):
 	def __init__(self):
@@ -29,7 +30,7 @@ class FactorGraphTrueSkillCalculator(SkillCalculator):
 		
 		start = meanVectorTranspose * playerTeamAssignmentsMatrix
 		aTa = (betaSquared * playerTeamAssignmentsMatrixTranspose) * playerTeamAssignmentsMatrix
-		aTSA = playerTeamAssigmentsMatrixTranspose * skillsMatrix * playerTeamAssignmentsMatrix
+		aTSA = playerTeamAssignmentsMatrixTranspose * skillsMatrix * playerTeamAssignmentsMatrix
 		middle = aTa + aTSA
 		
 		middleInverse = middle.inverse
@@ -48,10 +49,10 @@ class FactorGraphTrueSkillCalculator(SkillCalculator):
 		return result
 		
 	def _getPlayerMeansVector(self, teamAssignmentsList):
-		return _Vector(self._getPlayerRatingValues(teamAssigmentsList, lambda rating: rating.mean))
+		return _Vector(self._getPlayerRatingValues(teamAssignmentsList, lambda rating: rating.mean))
 		
-	def _getPlayerCovarianceMatrix(self, teamAssignmentList):
-		return _DiagonalMatrix(self._getPlayerRatingValues(teamAssigmentsList, lambda rating: rating.standardDeviation**2.0))
+	def _getPlayerCovarianceMatrix(self, teamAssignmentsList):
+		return _DiagonalMatrix(self._getPlayerRatingValues(teamAssignmentsList, lambda rating: rating.standardDeviation**2.0))
 		
 	def _getPlayerRatingValues(self, teamAssigmentsList, playerRatingFunction):
 		playerRatingValues = list()
@@ -60,12 +61,12 @@ class FactorGraphTrueSkillCalculator(SkillCalculator):
 				playerRatingValues.append(playerRatingFunction(currentRating))
 		return playerRatingValues
 	
-	def _createPlayerTeamAssignmentMatrix(self, teamAssigmentsList, totalPlayers):
+	def _createPlayerTeamAssignmentMatrix(self, teamAssignmentsList, totalPlayers):
 		playerAssignments = list()
 		totalPreviousPlayers = 0
 		
-		for i in range(leng(teamAssignmentsList)):
-			currentTeam = teamAssigmentsList[i]
+		for i in range(len(teamAssignmentsList)):
+			currentTeam = teamAssignmentsList[i]
 			currentRowValues = [0] * totalPreviousPlayers
 			playerAssignments.append(currentRowValues)
 			

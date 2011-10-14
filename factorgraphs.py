@@ -68,7 +68,7 @@ class KeyedVariable(Variable):
 		
 	@key.setter
 	def key(self, value):
-		self._key = key
+		self._key = value
 		
 class VariableFactory(object):
 	def __init__(self, variablePriorInitializer):
@@ -188,7 +188,6 @@ class Factor(object):
 		raise NotImplementedError()
 		
 	def _createVariableToMessageBindingInternal(self, variable, message):
-		index = len(self._messages)
 		self._messages.append(message)
 		self._variables.append(variable)
 		self._messageToVariable[message] = variable
@@ -240,7 +239,7 @@ class FactorGraphLayer(object):
 	def scheduleSequence(self, itemsToSequence, name):
 		return ScheduleSequence(name, itemsToSequence)
 		
-	def addLayerFactor(factor):
+	def addLayerFactor(self, factor):
 		self._localFactors.append(factor)
 		
 class FactorList(object):

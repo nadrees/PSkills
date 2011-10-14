@@ -1,7 +1,9 @@
-from factorgraphs import Factor, Message
-from numerics import logProductNormalization, fromPrecisionMean, cumulativeTo, logRatioNormalization, GaussianDistribution, wExceedsMargin, vExceedsMargin
-from math import log, sqrt
 from copy import deepcopy
+from factorgraphs import Factor, Message
+from math import log, sqrt
+from numerics import logProductNormalization, fromPrecisionMean, cumulativeTo, \
+	logRatioNormalization, GaussianDistribution, wExceedsMargin, vExceedsMargin, \
+	wWithinMargin, vWithinMargin
 
 class GaussianFactor(Factor):
 	def sendMessage(self, message, variable):
@@ -11,7 +13,7 @@ class GaussianFactor(Factor):
 		variable.value = marginal*messageValue
 		return logZ
 		
-	def createVariableToMessageBinding(variable):
+	def createVariableToMessageBinding(self, variable):
 		message = Message(fromPrecisionMean(0, 0), "message from %s to %s" % (self, variable))
 		return self._createVariableToMessageBindingInternal(variable, message)
 		
@@ -43,7 +45,7 @@ class GaussianGreaterThanFactor(GaussianFactor):
 		denom = 1.0 - wExceedsMargin(dOnSqrtC, epsilonTimesSqrtC)
 		
 		newPrecision = c/denom
-		newPrecisionMean = (d + sqrtC*vExceedsMarin(dOnSqrtC, epsilonTimesSqrtC))/denom
+		newPrecisionMean = (d + sqrtC*vExceedsMargin(dOnSqrtC, epsilonTimesSqrtC))/denom
 		
 		newMarginal = fromPrecisionMean(newPrecisionMean, newPrecision)
 		newMessage = oldMessage*newMarginal/oldMarginal
@@ -81,10 +83,10 @@ class GaussianLikelihoodFactor(GaussianFactor):
 		marginal2 = deepcopy(variable2.value)
 		
 		a = self._precision/(self._precision + marginal2.precision - message2Value.precision)
-		newMessage = fromPrecisionMean(a * (marginal2.precisionMean - message2Value.precisionMean), a*(marignal2.precision - message2Value.precision))
+		newMessage = fromPrecisionMean(a * (marginal2.precisionMean - message2Value.precisionMean), a*(marginal2.precision - message2Value.precision))
 		
 		oldMarginalWithoutMessage = marginal1/message1Value
-		newMarginal = oldMariginalWithoutMessage*newMessage
+		newMarginal = oldMarginalWithoutMessage*newMessage
 		
 		message1.value = newMessage
 		variable1.value = newMarginal
@@ -93,7 +95,7 @@ class GaussianLikelihoodFactor(GaussianFactor):
 		
 class GaussianPriorFactor(GaussianFactor):
 	'''Supplies the factor graph with prior information'''
-	def __init__(self, mean, variance, varible):
+	def __init__(self, mean, variance, variable):
 		super(GaussianPriorFactor, self).__init__("Prior value going to %s" % variable)
 		self._newMessage = GaussianDistribution(mean, sqrt(variance))
 		self.createVariableToMessageBinding(variable)
@@ -109,7 +111,7 @@ class GaussianPriorFactor(GaussianFactor):
 class GaussianWeightedSumFactor(GaussianFactor):
 	'''Factor that sums together multiple Gaussians'''
 	def __init__(self, sumVariable, variablesToSum, variableWeights = None):
-		name = self._createName(sumVariable, variablesToSum, varaiableWeights)
+		name = self._createName(sumVariable, variablesToSum, variableWeights)
 		super(GaussianWeightedSumFactor, self).__init__(name)
 		self._weights = [list() for i in range(len(variableWeights) + 1)]
 		self._weightsSquared = [list() for i in range(len(self._weights))]
@@ -134,7 +136,7 @@ class GaussianWeightedSumFactor(GaussianFactor):
 			self._weights[weightsIndex] = currentWeights
 			
 			variableIndices = [0]*(len(variableWeights) + 1)
-			variableIndicies[0] = weightsIndex
+			variableIndices[0] = weightsIndex
 			
 			currentWeightsSquared = [0]*len(variableWeights)
 			self._weightsSquared[weightsIndex] = currentWeightsSquared
@@ -148,7 +150,7 @@ class GaussianWeightedSumFactor(GaussianFactor):
 					currentWeight = -1.0*variableWeights[currentWeightSourceIndex]/variableWeights[weightsIndex - 1]
 				currentWeights[currentDestinationWeightIndex] = currentWeight
 				currentWeightsSquared[currentDestinationWeightIndex] = currentWeight**2.0
-				variableIndicies[currentDestinationWeightIndex + 1] = currentWeightSourceIndex + 1
+				variableIndices[currentDestinationWeightIndex + 1] = currentWeightSourceIndex + 1
 				currentDestinationWeightIndex += 1
 			
 			finalWeight = 0.0
@@ -156,8 +158,8 @@ class GaussianWeightedSumFactor(GaussianFactor):
 				finalWeight = 1.0/variableWeights[weightsIndex - 1]
 			currentWeights[currentDestinationWeightIndex] = finalWeight
 			currentWeightsSquared[currentDestinationWeightIndex] = finalWeight**2.0
-			variableIndicies[len(variableIndicies) - 1] = 0
-			self._variableIndexOrdersForWeights.append(variableIndicies)
+			variableIndices[len(variableIndices) - 1] = 0
+			self._variableIndexOrdersForWeights.append(variableIndices)
 			
 		self.createVariableToMessageBinding(sumVariable)
 		for currentVariable in variablesToSum:
@@ -171,7 +173,7 @@ class GaussianWeightedSumFactor(GaussianFactor):
 		return result
 		
 	def _updateHelper(self, weights, weightsSquared, messages, variables):
-		message0 = deepcopy(message[0].value)
+		message0 = deepcopy(messages[0].value)
 		marginal0 = deepcopy(variables[0].value)
 		
 		inverseOfNewPrecisionSum = 0.0
@@ -188,17 +190,15 @@ class GaussianWeightedSumFactor(GaussianFactor):
 			anotherWeightedMeanSum += weights[i] * diff.precisionMean/diff.precision
 			
 		newPrecision = 1.0/inverseOfNewPrecisionSum
-		anotherNewPrecision = 1.0/anotherInverseOfNewPrecisionSum
 		
 		newPrecisionMean = newPrecision*weightedMeanSum
-		anotherNewPrecisionMean = anotherNewPrecision*anotherWeightedMeanSum
 		
 		newMessage = fromPrecisionMean(newPrecisionMean, newPrecision)
 		oldMarginalWithoutMessage = marginal0/message0
 		
 		newMarginal = oldMarginalWithoutMessage*newMessage
 		
-		message[0].value = newMessage
+		messages[0].value = newMessage
 		variables[0].value = newMarginal
 		
 		return newMarginal - marginal0
@@ -246,7 +246,7 @@ class GaussianWithinFactor(GaussianFactor):
 		z = cumulativeTo((self._epsilon - mean) / std) - cumulativeTo((-1.0 * self._epsilon - mean) / std)
 		return -1.0 * logProductNormalization(messageFromVariable, message) + log(z)
 		
-	def updateMessage(message, variable):
+	def updateMessage(self, message, variable):
 		oldMarginal = deepcopy(variable.value)
 		oldMessage = deepcopy(message.value)
 		messageFromVariable = oldMarginal/oldMessage

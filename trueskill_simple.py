@@ -1,7 +1,8 @@
-from objects import SkillCalculator, SupportedOptions, argumentNotNone, sortByRank, PairwiseComparison, Rating
-from numerics import atLeast, exactly, inverseCumulativeTo, cumulativeTo, at, getDrawMarginFromDrawProbability, vExceedsMargin, wExceedsMargin, vWithinMargin, wWithinMargin
-from factorgraphs import FactorGraph
 from math import sqrt, e
+from numerics import atLeast, exactly, getDrawMarginFromDrawProbability, \
+	vExceedsMargin, wExceedsMargin, vWithinMargin, wWithinMargin
+from objects import SkillCalculator, SupportedOptions, argumentNotNone, \
+	sortByRank, PairwiseComparison, Rating
 
 class TwoTeamTrueSkillCalculator(SkillCalculator):
 	'''
