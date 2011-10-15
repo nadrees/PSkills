@@ -188,6 +188,9 @@ class Player(SupportPartialPlay, SupportPartialUpdate):
 
 	def __ne__(self, other):
 		return (self == other) == False
+	
+	def __str__(self):
+		return "%s" % self._id
 
 class Team(object):
 	'''Helper class for working with a team'''
@@ -220,6 +223,9 @@ class Team(object):
 	@property
 	def standardDeviationSquaredSum(self):
 		return sum(map(lambda playerTuple: playerTuple[1].standardDeviation**2.0, self._playerRatings))
+	
+	def __str__(self):
+		return "%s" % self._playerRatings
 
 class Rating(object):
 	'''Container for a player's rating'''

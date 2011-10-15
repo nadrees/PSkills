@@ -88,11 +88,8 @@ class Schedule(object):
 	def name(self):
 		return self._name
 		
-	def visit(self, depth = None, maxDepth = None):
-		if depth is None and maxDepth is None:
-			self.visit(-1, 0)
-		else:
-			raise NotImplementedError()
+	def visit(self, depth = -1, maxDepth = 0):
+		raise NotImplementedError()
 
 	def __str__(self):
 		return self._name
@@ -111,7 +108,7 @@ class ScheduleStep(Schedule):
 	def index(self):
 		return self._index
 	
-	def visit(self, depth, maxDepth):
+	def visit(self, depth = -1, maxDepth = 0):
 		return self._factor.updateMessage(self._index)
 		
 class ScheduleSequence(Schedule):
@@ -119,7 +116,7 @@ class ScheduleSequence(Schedule):
 		super(ScheduleSequence, self).__init__(name)
 		self._schedules = schedules
 		
-	def visit(self, depth, maxDepth):
+	def visit(self, depth = -1, maxDepth = 0):
 		maxDelta = 0
 		for currentSchedule in self._schedules:
 			delta = currentSchedule.visit(depth + 1, maxDepth)
@@ -132,7 +129,7 @@ class ScheduleLoop(Schedule):
 		self._scheduleToLoop = scheduleToLoop
 		self._maxDelta = maxDelta
 		
-	def visit(self, depth, maxDepth):
+	def visit(self, depth = -1, maxDepth = 0):
 		delta = self._scheduleToLoop.visit(depth+1, maxDepth)
 		while delta > self._maxDelta:
 			delta = self._scheduleToLoop.visit(depth+1, maxDepth)
@@ -141,7 +138,7 @@ class ScheduleLoop(Schedule):
 class Factor(object):
 	def __init__(self, name):
 		self._name = "Factor[%s]" % name
-		self._message = list()
+		self._messages = list()
 		self._variables = list()
 		self._messageToVariable = dict()
 		
@@ -241,6 +238,12 @@ class FactorGraphLayer(object):
 		
 	def addLayerFactor(self, factor):
 		self._localFactors.append(factor)
+		
+	def createPriorSchedule(self):
+		return None
+	
+	def createPosteriorSchedule(self):
+		return None
 		
 class FactorList(object):
 	def __init__(self):

@@ -67,12 +67,11 @@ class TwoPlayerTrueSkillCalculatorTests(unittest.TestCase):
 	
 		newRatings = self.calculator.calculateNewRatings(self.gameInfo, teams, [1, 2])
 	
-		for newRating in newRatings:
-			player = newRating[0]
+		for player, rating in newRatings:
 			if player == player1:
-				self.assertRating(29.39583201999924, 7.171475587326186, newRating[1])
+				self.assertRating(29.39583201999924, 7.171475587326186, rating)
 			else:
-				self.assertRating(20.60416798000076, 7.171475587326186, newRating[1])
+				self.assertRating(20.60416798000076, 7.171475587326186, rating)
 		self.assertMatchQuality(0.447, self.calculator.calculateMatchQuality(self.gameInfo, teams))
 	
 	def test_twoPlayerChessTestNotDrawn(self):

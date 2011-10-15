@@ -71,7 +71,7 @@ class GaussianLikelihoodFactor(GaussianFactor):
 		if messageIndex == 0:
 			return self._updateHelper(self._messages[0], self._messages[1], self._variables[0], self._variables[1])
 		elif messageIndex == 1:
-			return self._updateHelper(self._messages[1], self._messages[0], self._variables[1], self._varaibles[0])
+			return self._updateHelper(self._messages[1], self._messages[0], self._variables[1], self._variables[0])
 		else:
 			raise IndexError()	
 			
@@ -124,7 +124,7 @@ class GaussianWeightedSumFactor(GaussianFactor):
 			self._weightsSquared[0].append(variableWeight**2)
 		
 		# 0..n-1
-		temp = [i for i in range(len(variablesToSum))]
+		temp = [i for i in range(len(variablesToSum) + 1)]
 		self._variableIndexOrdersForWeights.append(temp)
 		
 		# the rest move the variables around and divide out the constant

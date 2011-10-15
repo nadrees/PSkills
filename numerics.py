@@ -64,6 +64,8 @@ def fromGaussianDistribution(distribution):
 	return GaussianDistribution(distribution.mean, distribution.standardDeviation, distribution.precision, distribution.precisionMean)
 
 def fromPrecisionMean(precisionMean, precision):
+	if precision == 0:
+		precision = 1
 	return GaussianDistribution(precisionMean / precision, sqrt(1.0 / precision), 1.0 / precision, precision, precisionMean)
 
 def mult(left, right):
@@ -72,10 +74,6 @@ def mult(left, right):
 def absoluteDifference(left, right):
 	"""Computes the absolute difference between two Gaussians"""
 	return max(abs(left.precisionMean - right.precisionMean), sqrt(abs(left.precision - right.precision)))
-
-def sub(left, right):
-	"""Computes the absolute difference between two Gaussians"""
-	return absoluteDifference(left, right)
 
 def divide(numerator, denominator):
 	return numerator / denominator
@@ -190,6 +188,9 @@ class GaussianDistribution(object):
 
 	def __div__(self, gaussian):
 		return fromPrecisionMean(self._precisionMean - gaussian.precisionMean, self._precision - gaussian.precision)
+	
+	def __sub__(self, other):
+		return absoluteDifference(self, other)
 
 class Matrix(object):
 	__errorTolerance = 0.0000000001
