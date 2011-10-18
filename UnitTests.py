@@ -16,8 +16,8 @@ class TwoPlayerTrueSkillCalculatorTests(unittest.TestCase):
 		self.gameInfo = defaultGameInfo()
 		
 	def assertRating(self, expectedMean, expectedStandardDeviation, actual):
-		self.assertAlmostEqual(expectedMean, actual.mean.value, delta = _errorTolerance)
-		self.assertAlmostEqual(expectedStandardDeviation, actual.standardDeviation.value, delta = _errorTolerance)
+		self.assertAlmostEqual(actual.mean, expectedMean, delta = _errorTolerance)
+		self.assertAlmostEqual(actual.standardDeviation, expectedStandardDeviation, delta = _errorTolerance)
 		
 	def assertMatchQuality(self, expectedMatchQuality, actualMatchQuality):
 		self.assertAlmostEqual(expectedMatchQuality, actualMatchQuality, delta = 0.0005)
