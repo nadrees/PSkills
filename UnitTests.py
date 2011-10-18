@@ -1,7 +1,7 @@
 from math import sqrt
 from numerics import GaussianDistribution, logRatioNormalization, \
 	absoluteDifference, at, cumulativeTo, logProductNormalization, Matrix, \
-	_SquareMatrix, _IdentityMatrix
+	_SquareMatrix, _IdentityMatrix, Decimal
 from objects import sortByRank, Player, GameInfo, defaultGameInfo, Team, Rating
 from trueskill_factorgraph.ts_factorgraph import FactorGraphTrueSkillCalculator
 from trueskill_simple import TwoPlayerTrueSkillCalculator, \
@@ -16,8 +16,8 @@ class TwoPlayerTrueSkillCalculatorTests(unittest.TestCase):
 		self.gameInfo = defaultGameInfo()
 		
 	def assertRating(self, expectedMean, expectedStandardDeviation, actual):
-		self.assertAlmostEqual(expectedMean, actual.mean, delta = _errorTolerance)
-		self.assertAlmostEqual(expectedStandardDeviation, actual.standardDeviation, delta = _errorTolerance)
+		self.assertAlmostEqual(expectedMean, actual.mean.value, delta = _errorTolerance)
+		self.assertAlmostEqual(expectedStandardDeviation, actual.standardDeviation.value, delta = _errorTolerance)
 		
 	def assertMatchQuality(self, expectedMatchQuality, actualMatchQuality):
 		self.assertAlmostEqual(expectedMatchQuality, actualMatchQuality, delta = 0.0005)
@@ -450,7 +450,7 @@ class GaussianDistributionTest(unittest.TestCase):
 		standardNormal = GaussianDistribution(0, 1)
 		shiftedGaussian = GaussianDistribution(2, 3)
 		product = standardNormal*shiftedGaussian
-		self.assertAlmostEqual(first=0.2, second=product.mean, delta=self.__errorTolerance)
+		self.assertAlmostEqual(first=product.mean, second=0.2, delta=Decimal(self.__errorTolerance))
 		self.assertAlmostEqual(first=(3.0/sqrt(10)), second=product.standardDeviation, delta=self.__errorTolerance)
 		m4s5 = GaussianDistribution(4, 5)
 		m6s7 = GaussianDistribution(6, 7)
@@ -464,13 +464,13 @@ class GaussianDistributionTest(unittest.TestCase):
 		product = GaussianDistribution(0.2, 3.0 / sqrt(10))
 		standardNormal = GaussianDistribution(0, 1)
 		productDividedByStandardNormal = product/standardNormal
-		self.assertAlmostEqual(2.0, productDividedByStandardNormal.mean, delta=self.__errorTolerance)
-		self.assertAlmostEqual(3.0, productDividedByStandardNormal.standardDeviation, delta=self.__errorTolerance)
+		self.assertAlmostEqual(2.0, productDividedByStandardNormal.mean.value, delta=self.__errorTolerance)
+		self.assertAlmostEqual(3.0, productDividedByStandardNormal.standardDeviation.value, delta=self.__errorTolerance)
 		product2 = GaussianDistribution((4.0*(7**2)+6*(5**2))/((5**2)+(7**2)), sqrt(((5.0**2)*(7**2))/((5**2)+(7**2))))
 		m4s5 = GaussianDistribution(4, 5)
 		product2DividedByM4S5 = product2/m4s5
-		self.assertAlmostEqual(first=6.0, second=product2DividedByM4S5.mean, delta=self.__errorTolerance)
-		self.assertAlmostEqual(first=7.0, second=product2DividedByM4S5.standardDeviation, delta=self.__errorTolerance)
+		self.assertAlmostEqual(first=6.0, second=product2DividedByM4S5.mean.value, delta=self.__errorTolerance)
+		self.assertAlmostEqual(first=7.0, second=product2DividedByM4S5.standardDeviation.value, delta=self.__errorTolerance)
 
 	def test_logProductNormalizationTests(self):
 		standardNormal = GaussianDistribution(0, 1)

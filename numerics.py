@@ -64,16 +64,25 @@ def fromGaussianDistribution(distribution):
 	return GaussianDistribution(distribution.mean, distribution.standardDeviation, distribution.precision, distribution.precisionMean)
 
 def fromPrecisionMean(precisionMean, precision):
+	variance = None
+	standardDeviation = None
+	mean = None
 	if precision == 0:
-		precision = 1
-	return GaussianDistribution(precisionMean / precision, sqrt(1.0 / precision), 1.0 / precision, precision, precisionMean)
+		variance = float('inf')
+		standardDeviation = float('inf')
+		mean = float('nan')
+	else:
+		variance = Decimal(1.0)/precision
+		standardDeviation = variance.sqrt()
+		mean = precisionMean / precision
+	return GaussianDistribution(mean, standardDeviation, variance, precision, precisionMean)
 
 def mult(left, right):
 	return left.mult(right)
 
 def absoluteDifference(left, right):
 	"""Computes the absolute difference between two Gaussians"""
-	return max(abs(left.precisionMean - right.precisionMean), sqrt(abs(left.precision - right.precision)))
+	return max(abs(left.precisionMean - right.precisionMean), abs(left.precision - right.precision).sqrt())
 
 def divide(numerator, denominator):
 	return numerator / denominator
@@ -84,7 +93,7 @@ def logRatioNormalization(numerator, denominator):
 	varianceDifference = denominator.variance - numerator.variance
 	meanDifference = numerator.mean - denominator.mean
 	logSqrt2Pi = log(sqrt(2*pi))
-	return log(denominator.variance) + logSqrt2Pi - log(varianceDifference)/2.0 + (meanDifference**2)/(2.0*varianceDifference)
+	return denominator.variance.log() + logSqrt2Pi - varianceDifference.log()/2.0 + (meanDifference**2)/(varianceDifference*2.0)
 
 def logProductNormalization(left, right):
 	if (left.precision == 0) or (right.precision == 0):
@@ -92,7 +101,7 @@ def logProductNormalization(left, right):
 	varianceSum = left.variance + right.variance
 	meanDifference = left.mean - right.mean
 	logSqrt2Pi = log(sqrt(2*pi))
-	return -1*logSqrt2Pi - (log(varianceSum)/2.0) - ((meanDifference**2)/(2.0*varianceSum))
+	return Decimal(-1*logSqrt2Pi) - (varianceSum.log()/2.0) - ((meanDifference**2)/(varianceSum*2.0))
 
 def at(x, mean = 0, standardDeviation = 1):
 	"""calculates the value at x of a normalized Gaussian"""
@@ -134,6 +143,81 @@ def inverseErrorFunctionCumulativeTo(p):
 
 def inverseCumulativeTo(x, mean = 0, standardDeviation = 1):
 	return mean - sqrt(2)*standardDeviation*inverseErrorFunctionCumulativeTo(2*x)
+
+class Decimal(object):
+	'''Custom decimal class that will automatically report infinity if dividing by 0'''
+	def __init__(self, value):
+		if isinstance(value, Decimal):
+			value = value.value
+		self._value = value
+	
+	@property
+	def value(self):
+		return self._value
+	
+	def __div__(self, other):
+		if isinstance(other, Decimal):
+			other = other.value
+		if other == 0:
+			return Decimal(float('inf'))
+		else:
+			return Decimal(self._value / other)
+	
+	def __mul__(self, other):
+		if isinstance(other, Decimal):
+			other = other.value
+		return Decimal(self._value * other)
+	
+	def __add__(self, other):
+		if isinstance(other, Decimal):
+			other = other.value
+		return Decimal(self._value + other)
+	
+	def __sub__(self, other):
+		if isinstance(other, Decimal):
+			other = other.value
+		return Decimal(self._value - other)
+	
+	def __str__(self):
+		return "%f" % self._value
+	
+	def __abs__(self):
+		return Decimal(abs(self._value))
+	
+	def __lt__(self, other):
+		if isinstance(other, Decimal):
+			other = other.value
+		return self._value < other
+	
+	def __eq__(self, other):
+		if isinstance(other, Decimal):
+			other = other.value
+		return self._value == other
+	
+	def __le__(self, other):
+		return self < other or self == other
+	
+	def __ne__(self, other):
+		return (self == other) == False
+	
+	def __gt__(self, other):
+		if isinstance(other, Decimal):
+			other = other.value
+		return self._value > other
+	
+	def __ge__(self, other):
+		return self > other or self == other
+	
+	def __pow__(self, other):
+		if isinstance(other, Decimal):
+			other = other.value
+		return Decimal(self._value ** other)
+	
+	def sqrt(self):
+		return Decimal(sqrt(self._value))
+	
+	def log(self):
+		return Decimal(log(self._value))
 
 class GaussianDistribution(object):
 	'''
@@ -177,11 +261,11 @@ class GaussianDistribution(object):
 		return 1.0/(sqrt(2*pi)*self._standardDeviation)
 
 	def __init__(self, mean, standardDeviation, variance = None, precision = None, precisionMean = None):
-		self._mean = mean
-		self._standardDeviation = standardDeviation
-		self._variance = (variance if variance is not None else standardDeviation**2.0)
-		self._precision = (precision if precision is not None else 1.0/(standardDeviation**2.0))
-		self._precisionMean = (precisionMean if precisionMean is not None else mean/(standardDeviation**2.0))
+		self._mean = Decimal(mean)
+		self._standardDeviation = Decimal(standardDeviation)
+		self._variance = Decimal((variance if variance is not None else standardDeviation**2.0))
+		self._precision = Decimal((precision if precision is not None else 1.0/(standardDeviation**2.0)))
+		self._precisionMean = Decimal((precisionMean if precisionMean is not None else mean/(standardDeviation**2.0)))
 
 	def __mul__(self, gaussian):
 		return fromPrecisionMean(self._precisionMean + gaussian.precisionMean, self._precision + gaussian.precision)

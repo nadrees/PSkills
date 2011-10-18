@@ -3,7 +3,7 @@ from factorgraphs import Factor, Message
 from math import log, sqrt
 from numerics import logProductNormalization, fromPrecisionMean, cumulativeTo, \
 	logRatioNormalization, GaussianDistribution, wExceedsMargin, vExceedsMargin, \
-	wWithinMargin, vWithinMargin
+	wWithinMargin, vWithinMargin, Decimal
 
 class GaussianFactor(Factor):
 	def sendMessage(self, message, variable):
@@ -56,10 +56,10 @@ class GaussianGreaterThanFactor(GaussianFactor):
 		return newMarginal - oldMarginal
 		
 class GaussianLikelihoodFactor(GaussianFactor):
-	'''Connects tow variables and adds uncertainty'''
+	'''Connects two variables and adds uncertainty'''
 	def __init__(self, betaSquared, variable1, variable2):
 		super(GaussianLikelihoodFactor, self).__init__("Likelihood of %s going to %s" % (variable1, variable2))
-		self._precision = 1.0/betaSquared
+		self._precision = Decimal(1.0)/betaSquared
 		self.createVariableToMessageBinding(variable1)
 		self.createVariableToMessageBinding(variable2)
 		
@@ -176,20 +176,20 @@ class GaussianWeightedSumFactor(GaussianFactor):
 		message0 = deepcopy(messages[0].value)
 		marginal0 = deepcopy(variables[0].value)
 		
-		inverseOfNewPrecisionSum = 0.0
-		anotherInverseOfNewPrecisionSum = 0.0
-		weightedMeanSum = 0.0
-		anotherWeightedMeanSum = 0.0
+		inverseOfNewPrecisionSum = Decimal(0.0)
+		anotherInverseOfNewPrecisionSum = Decimal(0.0)
+		weightedMeanSum = Decimal(0.0)
+		anotherWeightedMeanSum = Decimal(0.0)
 		
 		for i in range(len(weightsSquared)):
-			inverseOfNewPrecisionSum += weightsSquared[i]/(variables[i + 1].value.precision - messages[i + 1].value.precision)
+			inverseOfNewPrecisionSum += Decimal(weightsSquared[i])/(variables[i + 1].value.precision - messages[i + 1].value.precision)
 			diff = (variables[i + 1].value/messages[i + 1].value)
-			anotherInverseOfNewPrecisionSum += weightsSquared[i]/diff.precision
+			anotherInverseOfNewPrecisionSum += Decimal(weightsSquared[i])/diff.precision
 			
-			weightedMeanSum += weights[i] * (variables[i + 1].value.precisionMean - messages[i + 1].value.precisionMean) / (variables[i + 1].value.precision - messages[i + 1].value.precision)
-			anotherWeightedMeanSum += weights[i] * diff.precisionMean/diff.precision
+			weightedMeanSum += Decimal(weights[i]) * (variables[i + 1].value.precisionMean - messages[i + 1].value.precisionMean) / (variables[i + 1].value.precision - messages[i + 1].value.precision)
+			anotherWeightedMeanSum += Decimal(weights[i]) * diff.precisionMean/diff.precision
 			
-		newPrecision = 1.0/inverseOfNewPrecisionSum
+		newPrecision = Decimal(1.0)/inverseOfNewPrecisionSum
 		
 		newPrecisionMean = newPrecision*weightedMeanSum
 		

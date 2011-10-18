@@ -278,7 +278,7 @@ class Rating(object):
 		self._mean = mean
 		self._standardDeviation = standardDeviation
 		self._conservativeStandardDeviationMultiplier = conservativeStandardDeviationMultiplier if conservativeStandardDeviationMultiplier is not None else _defaultConservativeStandardDeviationMultiplier
-		self._conservativeRating = self._mean - self._conservativeStandardDeviationMultiplier*self._standardDeviation
+		self._conservativeRating = self._mean - self._standardDeviation*self._conservativeStandardDeviationMultiplier
 
 class SupportedOptions(object):
 	'''Enum like class to represent the options supported by the skill calculator'''
