@@ -36,7 +36,8 @@ class TrueSkillFactorGraph(FactorGraph):
 			
 	def runSchedule(self):
 		fullSchedule = self._createFullSchedule()
-		fullSchedule.visit()
+		fullScheduleDelta = fullSchedule.visit()
+		fullScheduleDelta = 0
 		
 	def getProbabilityOfRanking(self):
 		factorList = FactorList()
@@ -243,6 +244,7 @@ class TeamPerformancesToTeamPerformancesDifferencesLayer(FactorGraphLayer):
 			weakerTeam = self._inputVariablesGroups[i + 1][0]
 			currentDifference = self._createOutputVariable()
 			self.addLayerFactor(self._createTeamPerformancesToDifferenceFactor(strongerTeam, weakerTeam, currentDifference))
+			self._outputVariablesGroups.append([currentDifference])
 			
 	def _createTeamPerformancesToDifferenceFactor(self, strongerTeam, weakerTeam, currentDifference):
 		return GaussianWeightedSumFactor(currentDifference, [strongerTeam, weakerTeam], [1.0, -1.0])

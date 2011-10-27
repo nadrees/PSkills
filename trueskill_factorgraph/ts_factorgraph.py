@@ -15,7 +15,8 @@ class FactorGraphTrueSkillCalculator(SkillCalculator):
 		
 		factorGraph = TrueSkillFactorGraph(gameInfo, teams, teamRanks)
 		factorGraph.buildGraph()
-		factorGraph.runSchedule()
+		factorGraph.runSchedule()	
+		
 		return factorGraph.getUpdatedRatings()
 		
 	def calculateMatchQuality(self, gameInfo, teams):
